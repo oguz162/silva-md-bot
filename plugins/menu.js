@@ -68,7 +68,7 @@ function buildCompactMenu(plugins, pfx, botName, mode) {
         `║    _En Gelişmiş WhatsApp Botu_   ║\n` +
         `╚══════════════════════════════════╝\n`;
 
-    const statusBlock = box(`📋 Bot AKtif`, [
+    const statusBlock = box(`📋 Bot Aktif`, [
         `◆ *Bot:*      ${botName}`,
         `◆ *Önek:*     \`${pfx}\``,
         `◆ *Mod:*      ${modeEmoji} ${mode}`,
