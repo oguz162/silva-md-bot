@@ -1,6 +1,6 @@
 {
   "name": "silva-md",
-  "description": "Silva MD — A feature-rich multi-device WhatsApp bot with 1200+ commands, AI agent, auto-status, anti-delete, sudo system, and 19 smart features. Built with Node.js and Baileys.",
+  "description": "Silva MD — 1200+ komut, yapay zeka ajanı, otomatik durum, silinen mesaj kurtarma, sudo sistemi ve 19 akıllı özellik sunan, zengin özellikli çoklu cihaz destekli bir WhatsApp botu. Node.js ve Baileys ile geliştirilmiştir.",
   "keywords": ["silva-md", "whatsapp", "baileys", "bot", "multi-device", "ai", "chatbot", "whatsapp-bot", "nodejs"],
   "logo": "https://files.catbox.moe/5uli5p.jpeg",
   "repository": "https://github.com/SilvaTechB/silva-md-bot",
@@ -9,102 +9,102 @@
   "stack": "heroku-26",
   "env": {
     "SESSION_ID": {
-      "description": "Your WhatsApp session ID. Get it from the pairing page.",
+      "description": "WhatsApp oturum kimliğiniz (session ID). Eşleştirme sayfasından alabilirsiniz.",
       "required": true,
       "value": ""
     },
     "OWNER_NUMBER": {
-      "description": "Owner WhatsApp number with country code (e.g. 254712345678).",
+      "description": "Ülke koduyla birlikte sahibin WhatsApp numarası (örn. 905xxxxxxxxx).",
       "required": true,
       "value": ""
     },
     "PREFIX": {
-      "description": "Command prefix. Single: '.' | Multiple: '.,!,/,?' | Any symbol: 'any' | No prefix: 'none'.",
+      "description": "Komut öneki. Tek: '.' | Birden fazla: '.,!,/,?' | Herhangi bir sembol: 'any' | Önek yok: 'none'.",
       "required": false,
       "value": "."
     },
     "MODE": {
-      "description": "Bot mode: public (everyone), private (owner only), group (groups only), inbox (DM only), both (public).",
+      "description": "Bot modu: public (herkes), private (yalnızca sahip), group (yalnızca gruplar), inbox (yalnızca özel mesaj), both (herkese açık).",
       "required": false,
       "value": "public"
     },
     "BOT_NAME": {
-      "description": "Bot display name shown in menus and greetings.",
+      "description": "Menülerde ve karşılama mesajlarında gösterilen bot adı.",
       "required": false,
       "value": "✦ Silva ✦ MD ✦"
     },
     "OWNER_NAME": {
-      "description": "Bot owner's display name.",
+      "description": "Bot sahibinin görünen adı.",
       "required": false,
       "value": "Silva MD"
     },
     "THEME": {
-      "description": "Bot theme/voice. Options: silva, adam, ayanokoji, edith, friday, genos, gideon, gojo, goku, luffy, naruto, nezuko, parker, secktor, suhail, zerotwo, itachi, batman, thanos.",
+      "description": "Bot teması/sesi. Seçenekler: silva, adam, ayanokoji, edith, friday, genos, gideon, gojo, goku, luffy, naruto, nezuko, parker, secktor, suhail, zerotwo, itachi, batman, thanos.",
       "required": false,
       "value": "silva"
     },
     "ALIVE_IMG": {
-      "description": "Image URL shown with the alive/menu command.",
+      "description": "alive/menu komutuyla birlikte gösterilen görsel URL'si.",
       "required": false,
       "value": "https://files.catbox.moe/5uli5p.jpeg"
     },
     "GEMINI_API_KEY": {
-      "description": "Google Gemini API key for advanced AI responses. Get it from ai.google.dev.",
+      "description": "Gelişmiş yapay zeka yanıtları için Google Gemini API anahtarı. ai.google.dev adresinden alabilirsiniz.",
       "required": false,
       "value": ""
     },
     "ANTIDELETE_GROUP": {
-      "description": "Recover deleted messages in groups (true/false).",
+      "description": "Gruplarda silinen mesajları kurtar (true/false).",
       "required": false,
       "value": "true"
     },
     "ANTIDELETE_PRIVATE": {
-      "description": "Recover deleted messages in private chats (true/false).",
+      "description": "Özel sohbetlerde silinen mesajları kurtar (true/false).",
       "required": false,
       "value": "true"
     },
     "AUTO_STATUS_SEEN": {
-      "description": "Auto-view all WhatsApp status updates (true/false).",
+      "description": "Tüm WhatsApp durum güncellemelerini otomatik görüntüle (true/false).",
       "required": false,
       "value": "true"
     },
     "AUTO_STATUS_REACT": {
-      "description": "Auto-react to status updates with emoji (true/false).",
+      "description": "Durum güncellemelerine emojiyle otomatik tepki ver (true/false).",
       "required": false,
       "value": "true"
     },
     "ALWAYS_ONLINE": {
-      "description": "Keep bot always shown as online (true/false).",
+      "description": "Botu her zaman çevrimiçi göster (true/false).",
       "required": false,
       "value": "true"
     },
     "ANTIVV": {
-      "description": "Auto-recover view-once messages (true/false).",
+      "description": "Tek seferlik görüntülenen mesajları otomatik kurtar (true/false).",
       "required": false,
       "value": "true"
     },
     "ANTILINK": {
-      "description": "Auto-remove links in groups (true/false).",
+      "description": "Gruplardaki bağlantıları otomatik sil (true/false).",
       "required": false,
       "value": "false"
     },
     "ANTICALL": {
-      "description": "Auto-reject all incoming WhatsApp calls and notify owner (true/false).",
+      "description": "Gelen tüm WhatsApp aramalarını otomatik reddet ve sahibi bilgilendir (true/false).",
       "required": false,
       "value": "true"
     },
     "TIMEZONE": {
-      "description": "Timezone for date/time features (e.g. Africa/Nairobi, America/New_York).",
+      "description": "Tarih/saat özellikleri için saat dilimi (örn. Europe/Istanbul, America/New_York).",
       "required": false,
-      "value": "Africa/Nairobi"
+      "value": "Europe/Istanbul"
     },
     "AUTO_JOIN_GROUPS": {
-      "description": "Comma-separated group invite codes to auto-join on startup. Leave blank to disable.",
+      "description": "Başlangıçta otomatik katılınacak, virgülle ayrılmış grup davet kodları. Devre dışı bırakmak için boş bırakın.",
       "required": false,
       "value": ""
     },
     "PORT": {
-      "description": "HTTP server port for the web dashboard.",
+      "description": "Web paneli için HTTP sunucu portu.",
       "required": false,
       "value": "25680"
     }
