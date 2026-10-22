@@ -16,14 +16,14 @@ try {
     normalizeMessageContent = (c) => c;
 }
 
-// Extract the bare phone-number string from any JID format
+// Herhangi bir JID formatından yalın telefon numarası dizesini çıkarır
 function jidToNum(jid) {
     if (!jid) return '';
     return jidNormalizedUser(jid).split('@')[0].replace(/\D/g, '');
 }
 
-// True when two phone numbers refer to the same subscriber.
-// Handles missing country codes by comparing the last 9 significant digits.
+// İki telefon numarası aynı aboneye aitse true döner.
+// Eksik ülke kodlarını, son 9 anlamlı haneyi karşılaştırarak ele alır.
 function sameNumber(a, b) {
     if (!a || !b) return false;
     if (a === b) return true;
@@ -32,14 +32,14 @@ function sameNumber(a, b) {
     return tail >= 6 && a.slice(-tail) === b.slice(-tail);
 }
 
-// ─── Permission constants ────────────────────────────────────────────────────
+// ─── Yetki sabitleri ─────────────────────────────────────────────────────────
 const PERM = {
     PUBLIC: 'public',
     ADMIN:  'admin',
     OWNER:  'owner'
 };
 
-// ─── Group metadata cache (5 min TTL) ───────────────────────────────────────
+// ─── Grup meta verisi önbelleği (5 dk TTL) ──────────────────────────────────
 const groupCache = new Map();
 const GROUP_CACHE_TTL = 5 * 60 * 1000;
 
@@ -55,7 +55,7 @@ async function getCachedGroupMetadata(sock, jid) {
     }
 }
 
-// Invalidate cache when group membership changes
+// Grup üyeliği değiştiğinde önbelleği geçersiz kıl
 function bindGroupCacheInvalidation(sock) {
     sock.ev.on('group-participants.update', ({ id }) => groupCache.delete(id));
 }
@@ -66,8 +66,8 @@ const MAX_SENDS_PER_MIN = 30;
 async function safeSend(sock, jid, content, opts = {}) {
     if (!jid || !sock?.sendMessage) return null;
 
-    // Reject obviously invalid JIDs.  Valid DM suffixes: @s.whatsapp.net, @lid, @c.us
-    // Valid group suffix: @g.us.  Anything else (e.g. a bare phone number) is rejected.
+    // Açıkça geçersiz JID'leri reddet.  Geçerli DM sonekleri: @s.whatsapp.net, @lid, @c.us
+    // Geçerli grup soneki: @g.us.  Bunların dışındaki her şey (örn. yalın telefon numarası) reddedilir.
     const validSuffix = jid.endsWith('@s.whatsapp.net') || jid.endsWith('@lid')
         || jid.endsWith('@g.us') || jid.endsWith('@c.us') || jid.endsWith('@newsletter');
     if (!validSuffix) {
@@ -79,7 +79,7 @@ async function safeSend(sock, jid, content, opts = {}) {
     const _preview = (content?.text || content?.caption || '[media]').toString().slice(0, 60);
     const _to      = jid.split('@')[0];
 
-    // Rate limit + jitter
+    // Hız sınırı + rastgele gecikme (jitter)
     const now = Date.now();
     while (sendTimestamps.length && now - sendTimestamps[0] > 60000) sendTimestamps.shift();
     if (sendTimestamps.length >= MAX_SENDS_PER_MIN) {
@@ -90,15 +90,15 @@ async function safeSend(sock, jid, content, opts = {}) {
     await new Promise(r => setTimeout(r, jitter));
     sendTimestamps.push(Date.now());
 
-    // @lid DM: establish the outbound E2E session (prekeys) before sending.
-    // Without this, Baileys queues the message but WA drops it silently because
-    // the bot has no registered send-session for that LID account.
-    // Use m.key.remoteJid directly — never reconstruct or remap to @s.whatsapp.net here.
+    // @lid DM: göndermeden önce giden uçtan uca (E2E) oturumu (prekey'ler) kur.
+    // Bu olmadan Baileys mesajı kuyruğa alır ancak WA, botun o LID hesabı için
+    // kayıtlı bir gönderme oturumu olmadığından mesajı sessizce düşürür.
+    // m.key.remoteJid'i doğrudan kullan — burada asla @s.whatsapp.net'e yeniden oluşturma veya eşleme yapma.
     if (isLidDm && typeof sock.assertSessions === 'function') {
-        try { await sock.assertSessions([jid], false); } catch { /* non-fatal */ }
+        try { await sock.assertSessions([jid], false); } catch { /* kritik değil */ }
     }
 
-    // Attempt 1 — primary: m.key.remoteJid as-is, full opts (quoted + contextInfo)
+    // Deneme 1 — birincil: m.key.remoteJid olduğu gibi, tam seçeneklerle (quoted + contextInfo)
     try {
         const result = await sock.sendMessage(jid, content, opts);
         console.log(`✉️  OUT  to=${_to}  "${_preview}"`);
@@ -107,10 +107,10 @@ async function safeSend(sock, jid, content, opts = {}) {
         console.error(`❌ SEND FAILED (attempt 1)  to=${jid}: ${err.message}`);
     }
 
-    // Attempt 2 — strip quoted reply.
-    // WhatsApp Business messages carry a messageContextInfo wrapper that Baileys
-    // embeds when building the quoted context; WA Business servers reject it.
-    // Also strip newsletter forwardedNewsletterMessageInfo from content contextInfo.
+    // Deneme 2 — alıntılı yanıtı kaldır.
+    // WhatsApp Business mesajları, Baileys'in alıntı bağlamını oluştururken eklediği
+    // bir messageContextInfo sarmalayıcısı taşır; WA Business sunucuları bunu reddeder.
+    // Ayrıca içerikteki contextInfo'dan newsletter forwardedNewsletterMessageInfo'yu da kaldır.
     if (opts.quoted) {
         const { quoted: _q, ...optsNoQuote } = opts;
         const safeContent = { ...content };
@@ -127,7 +127,7 @@ async function safeSend(sock, jid, content, opts = {}) {
         }
     }
 
-    // Attempt 3 — plain text, zero opts
+    // Deneme 3 — düz metin, hiçbir seçenek olmadan
     if (content?.text || content?.caption) {
         const plainText = content.text || content.caption;
         try {
@@ -142,7 +142,7 @@ async function safeSend(sock, jid, content, opts = {}) {
     return null;
 }
 
-// Newsletter watermark — only safe in private chats; groups get an empty object
+// Newsletter filigranı — yalnızca özel sohbetlerde güvenli; gruplara boş nesne verilir
 const GLOBAL_CONTEXT_INFO = {
     forwardingScore: 999,
     isForwarded: true,
@@ -153,7 +153,7 @@ const GLOBAL_CONTEXT_INFO = {
     }
 };
 
-// ─── Plugin loader ───────────────────────────────────────────────────────────
+// ─── Eklenti yükleyici ───────────────────────────────────────────────────────
 const plugins = [];
 const pluginDir = path.join(__dirname, 'plugins');
 
@@ -167,7 +167,7 @@ function loadPlugins() {
             delete require.cache[require.resolve(pluginPath)];
             const plugin = require(pluginPath);
 
-            // Support array exports (e.g. module.exports = [plugin1, plugin2, ...])
+            // Dizi dışa aktarımlarını destekle (örn. module.exports = [plugin1, plugin2, ...])
             const mods = Array.isArray(plugin) ? plugin : [plugin];
 
             for (const mod of mods) {
@@ -190,7 +190,7 @@ function loadPlugins() {
 
 loadPlugins();
 
-// ─── Connection handlers ─────────────────────────────────────────────────────
+// ─── Bağlantı işleyicileri ───────────────────────────────────────────────────
 function setupConnectionHandlers(sock) {
     bindGroupCacheInvalidation(sock);
     sock.ev.on('connection.update', ({ connection }) => {
@@ -199,12 +199,12 @@ function setupConnectionHandlers(sock) {
     sock.ev.on('group-participants.update', async (update) => {
         for (const p of plugins) {
             if (typeof p.onGroupParticipantsUpdate !== 'function') continue;
-            try { await p.onGroupParticipantsUpdate(sock, update); } catch { /* ignore */ }
+            try { await p.onGroupParticipantsUpdate(sock, update); } catch { /* yoksay */ }
         }
     });
 }
 
-// ─── Command predictor ───────────────────────────────────────────────────────
+// ─── Komut tahmincisi ────────────────────────────────────────────────────────
 function levenshtein(a, b) {
     const m = a.length, n = b.length;
     const dp = Array.from({ length: m + 1 }, (_, i) =>
@@ -224,7 +224,7 @@ function predictCommand(typed, allPlugins) {
         for (const cmd of (plugin.commands || []))
             flat.push({ cmd, plugin });
 
-    // 1. Unambiguous prefix match (typed ≥ 3 chars, matches exactly one command)
+    // 1. Belirsiz olmayan önek eşleşmesi (yazılan ≥ 3 karakter, tam olarak bir komutla eşleşir)
     if (typed.length >= 3) {
         const hits = flat.filter(({ cmd }) => cmd.startsWith(typed));
         if (hits.length === 1)
@@ -233,8 +233,8 @@ function predictCommand(typed, allPlugins) {
             return { matches: [...new Set(hits.map(h => h.cmd))], confidence: 'ambiguous' };
     }
 
-    // 2. Fuzzy match via Levenshtein distance
-    //    threshold = 1 for short commands (≤4 chars), 2 for longer ones
+    // 2. Levenshtein mesafesi ile bulanık eşleşme
+    //    eşik = kısa komutlar için 1 (≤4 karakter), daha uzun olanlar için 2
     let best = null, bestDist = Infinity;
     for (const { cmd, plugin } of flat) {
         const dist = levenshtein(typed, cmd);
@@ -247,7 +247,7 @@ function predictCommand(typed, allPlugins) {
     return best;
 }
 
-// ─── Main message handler ────────────────────────────────────────────────────
+// ─── Ana mesaj işleyicisi ────────────────────────────────────────────────────
 function formatDuration(ms) {
     const s = Math.floor(ms / 1000);
     const m = Math.floor(s / 60);
@@ -261,10 +261,10 @@ function formatDuration(ms) {
 
 async function handleMessages(sock, message) {
     try {
-        // normalizeMessageContent unwraps WhatsApp Business / multi-device wrappers:
-        // ephemeralMessage, viewOnceMessage, documentWithCaptionMessage, editedMessage, etc.
-        // Without this, Business accounts often have msg.conversation === undefined even
-        // though the text is buried one level deeper inside a wrapper field.
+        // normalizeMessageContent, WhatsApp Business / çoklu cihaz sarmalayıcılarını açar:
+        // ephemeralMessage, viewOnceMessage, documentWithCaptionMessage, editedMessage vb.
+        // Bu olmadan Business hesaplarında, metin bir sarmalayıcı alanın bir seviye
+        // derinine gömülü olsa bile msg.conversation === undefined olabilir.
         const rawMsg = message.message;
         if (!rawMsg) return;
 
@@ -274,53 +274,53 @@ async function handleMessages(sock, message) {
         const msg = unwrapMessageContent(_normalized) || _normalized;
 
 
-        // jid  = the chat to respond to — always m.key.remoteJid, NEVER reconstructed.
-        // Valid suffixes: @s.whatsapp.net (regular WA), @lid (Business / privacy DM),
-        // @g.us (group).  Do NOT remap @lid to @s.whatsapp.net here — safeSend handles
-        // session establishment and phone-JID fallback automatically.
+        // jid  = yanıt verilecek sohbet — her zaman m.key.remoteJid, ASLA yeniden oluşturulmaz.
+        // Geçerli sonekler: @s.whatsapp.net (normal WA), @lid (Business / gizlilik DM),
+        // @g.us (grup).  Burada @lid'i @s.whatsapp.net'e eşleme — safeSend oturum
+        // kurulumunu ve telefon-JID yedeğini otomatik olarak halleder.
         const jid    = message.key.remoteJid;
-        // from = the individual who typed the command.
-        // For fromMe private messages participant is undefined and jid is the
-        // recipient — not the sender.  Correct this so ctx.from always refers
-        // to the actual sender (bot's own JID when fromMe, participant when in
-        // a group, or the remote JID for incoming private messages).
+        // from = komutu yazan kişi.
+        // fromMe özel mesajlarda participant tanımsızdır ve jid alıcıdır —
+        // gönderen değil.  Bunu düzelt, böylece ctx.from her zaman gerçek
+        // göndereni ifade eder (fromMe ise botun kendi JID'i, gruptaysa participant,
+        // gelen özel mesajlarda ise uzak JID).
         const _botOwnJid = global.botJid || '';
         const from = message.key.participant
             || (message.key.fromMe && !isJidGroup(jid) ? (_botOwnJid || jid) : jid);
-        // sender = chat JID for responses (matches legacy plugin expectation of m.key.remoteJid)
+        // sender = yanıtlar için sohbet JID'i (eski eklentilerin m.key.remoteJid beklentisiyle uyumlu)
         const sender = jid;
         if (!jid || !from) return;
 
-        // ── Auto-presence: fire instantly on every incoming message ──────────
+        // ── Otomatik durum (presence): gelen her mesajda anında tetiklenir ──
         if (!message.key.fromMe && (config.AUTO_TYPING || config.AUTO_RECORDING)) {
             const presenceType = config.AUTO_RECORDING ? 'recording' : 'composing';
-            try { await sock.sendPresenceUpdate(presenceType, jid); } catch { /* non-fatal */ }
+            try { await sock.sendPresenceUpdate(presenceType, jid); } catch { /* kritik değil */ }
         }
 
-        // isGroup: @g.us = group, @s.whatsapp.net / @lid / @c.us = DM
+        // isGroup: @g.us = grup, @s.whatsapp.net / @lid / @c.us = DM
         const isGroup = isJidGroup(jid);
 
-        // ── Multi-prefix parser ──────────────────────────────────────────────
-        // PREFIX env var supports:
-        //   '.'          → only dot prefix
-        //   '.,!,/,?'    → comma-separated list — any of them works
-        //   'any'        → any single leading non-alphanumeric/non-space char
-        //   '' / 'none'  → no prefix needed (bare command words are matched)
+        // ── Çoklu önek ayrıştırıcı ───────────────────────────────────────────
+        // PREFIX ortam değişkeni şunları destekler:
+        //   '.'          → yalnızca nokta öneki
+        //   '.,!,/,?'    → virgülle ayrılmış liste — herhangi biri çalışır
+        //   'any'        → baştaki herhangi bir alfanümerik/boşluk olmayan tek karakter
+        //   '' / 'none'  → önek gerekmez (yalın komut kelimeleri eşleştirilir)
         const rawPrefix   = (config.PREFIX || '.').trim();
         const noPrefixMode  = !rawPrefix || rawPrefix.toLowerCase() === 'none' || rawPrefix.toLowerCase() === 'false';
         const anyPrefixMode = rawPrefix.toLowerCase() === 'any';
         const prefixList    = (!noPrefixMode && !anyPrefixMode)
             ? rawPrefix.split(',').map(p => p.trim()).filter(Boolean)
             : [];
-        // primary prefix used in help text / plugin output
+        // yardım metninde / eklenti çıktısında kullanılan birincil önek
         const prefix = prefixList[0] || (anyPrefixMode ? '.' : '');
 
-        // ── Extract text ─────────────────────────────────────────────────────
-        // Walk through all known message types — WhatsApp Business and newer
-        // WA versions wrap content differently. Order: most specific → most generic.
+        // ── Metni çıkar ──────────────────────────────────────────────────────
+        // Bilinen tüm mesaj türlerini dolaş — WhatsApp Business ve daha yeni
+        // WA sürümleri içeriği farklı sarar. Sıra: en özelden → en genele.
         const text = extractMessageText(rawMsg, normalizeMessageContent);
 
-        // ── AFK auto-reply (fires before prefix check, not for owner's own messages) ──
+        // ── AFK otomatik yanıtı (önek kontrolünden önce çalışır, sahibin kendi mesajlarında çalışmaz) ──
         if (!message.key.fromMe) {
             const afkPlugin = plugins.find(p => p.commands?.includes('afk') && typeof p.isAfk === 'function');
             if (afkPlugin?.isAfk()) {
@@ -328,20 +328,20 @@ async function handleMessages(sock, message) {
                 const th = getActiveTheme()?.global || {};
                 await safeSend(sock, jid, {
                     text: [
-                        `🤖 *${th.botName || 'Silva MD'}*`,
+                        `🤖 *${th.botName || 'Alpha MD'}*`,
                         ``,
-                        `${th.greet2 ? `_${th.greet2}!_` : `_Hey!_`} My owner is currently *AFK*.`,
-                        `📝 *Reason:* ${reason}`,
-                        `⏱ *Away for:* ${formatDuration(Date.now() - since)}`,
+                        `${th.greet2 ? `_${th.greet2}!_` : `_Merhaba!_`} Sahibim şu an *AFK* modunda.`,
+                        `📝 *Neden:* ${reason}`,
+                        `⏱ *Süre:* ${formatDuration(Date.now() - since)}`,
                         ``,
-                        `_${th.footer || th.botName || 'Silva MD'}_`
+                        `_${th.footer || th.botName || 'Alpha MD'}_`
                     ].join('\n'),
                 }, { quoted: message });
                 return;
             }
         }
 
-        // ── Anti-link (group only, bot must be admin) ────────────────────────
+        // ── Bağlantı engelleyici (yalnızca grup, bot yönetici olmalı) ────────
         if (isGroup && !message.key.fromMe) {
             const antilinkOn = config.ANTILINK || global.antilinkGroups?.has(jid);
             if (antilinkOn) {
@@ -349,7 +349,7 @@ async function handleMessages(sock, message) {
                 if (URL_REGEX.test(text)) {
                     try {
                         await sock.sendMessage(jid, { delete: message.key });
-                        const antlinkMsg = getStr('antlink') || `⚠️ @${from.split('@')[0]} links are not allowed in this group.`;
+                        const antlinkMsg = getStr('antlink') || `⚠️ @${from.split('@')[0]} bu grupta bağlantı paylaşmak yasaktır.`;
                         await safeSend(sock, jid, {
                             text: antlinkMsg,
                             mentions: [from]
@@ -362,8 +362,8 @@ async function handleMessages(sock, message) {
             }
         }
 
-        // ── onMessage hooks — fired for ALL messages (not just commands) ────────
-        // Tracking and auto-reply only for other people's messages (not the bot's own).
+        // ── onMessage kancaları — TÜM mesajlar için tetiklenir (yalnızca komutlar değil) ──
+        // Takip ve otomatik yanıt yalnızca diğer kişilerin mesajları içindir (botun kendisininkiler değil).
         if (!message.key.fromMe) {
             if (typeof global.trackMessage === 'function') try { global.trackMessage(jid, from); } catch {}
             if (typeof global.addXP === 'function') {
@@ -373,7 +373,7 @@ async function handleMessages(sock, message) {
                 try {
                     const autoReply = global.checkAutoReply(from);
                     if (autoReply) {
-                        await safeSend(sock, jid, { text: `💤 *Auto-Reply:*\n\n${autoReply}` }, { quoted: message });
+                        await safeSend(sock, jid, { text: `💤 *Otomatik Yanıt:*\n\n${autoReply}` }, { quoted: message });
                     }
                 } catch {}
             }
@@ -381,14 +381,14 @@ async function handleMessages(sock, message) {
                 try {
                     const result = global.checkWelcomeQuizAnswer(jid, from, text);
                     if (result?.passed) {
-                        await safeSend(sock, jid, { text: `✅ @${from.split('@')[0]} passed the welcome quiz! Welcome to the group! 🎉`, mentions: [from] });
+                        await safeSend(sock, jid, { text: `✅ @${from.split('@')[0]} karşılama sınavını geçti! Gruba hoş geldin! 🎉`, mentions: [from] });
                     }
                 } catch {}
             }
         }
-        // Plugin onMessage hooks fire for everyone — including the connected
-        // contact (fromMe=true) — so conversation-aware plugins respond to
-        // the owner's own messages in both private and group chats.
+        // Eklenti onMessage kancaları herkes için tetiklenir — bağlı kişi
+        // (fromMe=true) dahil — böylece sohbet duyarlı eklentiler hem özel hem de
+        // grup sohbetlerinde sahibin kendi mesajlarına yanıt verir.
         for (const p of plugins) {
             if (typeof p.onMessage !== 'function') continue;
             try {
@@ -396,27 +396,27 @@ async function handleMessages(sock, message) {
                     jid, sender, from, isGroup,
                     contextInfo: isGroup ? {} : GLOBAL_CONTEXT_INFO
                 });
-            } catch { /* ignore plugin onMessage errors */ }
+            } catch { /* eklenti onMessage hatalarını yoksay */ }
         }
 
 
-        // ── Detect which prefix was used (or if no prefix needed) ──────────────
-        let usedPrefix = null;       // the actual prefix string found in the message
-        let commandText = '';        // text with prefix stripped
+        // ── Hangi önekin kullanıldığını (veya önek gerekip gerekmediğini) tespit et ──
+        let usedPrefix = null;       // mesajda bulunan gerçek önek dizesi
+        let commandText = '';        // öneki çıkarılmış metin
 
         if (noPrefixMode) {
-            // Any message could be a command — match bare words
+            // Her mesaj bir komut olabilir — yalın kelimeleri eşleştir
             usedPrefix  = '';
             commandText = text.trim();
         } else if (anyPrefixMode) {
-            // Any single leading character that isn't alphanumeric / space = prefix
+            // Alfanümerik / boşluk olmayan baştaki herhangi bir tek karakter = önek
             const first = text[0];
             if (first && !/^[a-zA-Z0-9\u00C0-\u024F\s]/.test(first)) {
                 usedPrefix  = first;
                 commandText = text.slice(1).trim();
             }
         } else {
-            // Exact prefix list — check each in order, longest match wins
+            // Kesin önek listesi — her birini sırayla kontrol et, en uzun eşleşme kazanır
             const sorted = [...prefixList].sort((a, b) => b.length - a.length);
             for (const p of sorted) {
                 if (text.startsWith(p)) {
@@ -428,17 +428,17 @@ async function handleMessages(sock, message) {
         }
 
         if (usedPrefix === null) {
-            // Allow "silva" or "agent" to trigger the AI assistant without any prefix
+            // "silva" veya "agent" kelimesinin önek olmadan yapay zeka asistanını tetiklemesine izin ver
             if (/^(silva|agent)\b/i.test(text.trim())) {
                 usedPrefix  = '';
                 commandText = text.trim();
             } else {
-                // No prefix matched — fire typing indicator then stop
+                // Hiçbir önek eşleşmedi — yazıyor göstergesini tetikle ve dur
                 if (!message.key.fromMe && (config.AUTO_TYPING || config.AUTO_RECORDING)) {
                     const presenceType = config.AUTO_RECORDING ? 'recording' : 'composing';
-                    try { await sock.sendPresenceUpdate(presenceType, jid); } catch { /* ok */ }
+                    try { await sock.sendPresenceUpdate(presenceType, jid); } catch { /* sorun yok */ }
                     setTimeout(async () => {
-                        try { await sock.sendPresenceUpdate('paused', jid); } catch { /* ok */ }
+                        try { await sock.sendPresenceUpdate('paused', jid); } catch { /* sorun yok */ }
                     }, 2000);
                 }
                 return;
@@ -450,7 +450,7 @@ async function handleMessages(sock, message) {
         const args    = parts;
         if (!command) return;
 
-        // ── Command predictor: resolve typos / short-forms ───────────────────
+        // ── Komut tahmincisi: yazım hatalarını / kısaltmaları çözümle ────────
         let resolvedCommand = command;
         let predictionNote  = null;
         const exactExists   = plugins.some(p => p.commands?.includes(command));
@@ -460,28 +460,28 @@ async function handleMessages(sock, message) {
                 const th = getActiveTheme()?.global || {};
                 await safeSend(sock, jid, {
                     text: [
-                        `❓ *Did you mean one of these?*`,
+                        `❓ *Bunlardan birini mi demek istediniz?*`,
                         prediction.matches.map(c => `• \`${prefix}${c}\``).join('\n'),
                         ``,
                         th.footer ? `_${th.footer}_` : ''
                     ].filter(Boolean).join('\n')
                 }, { quoted: message });
                 if (config.AUTO_TYPING || config.AUTO_RECORDING)
-                    try { await sock.sendPresenceUpdate('paused', jid); } catch { /* ok */ }
+                    try { await sock.sendPresenceUpdate('paused', jid); } catch { /* sorun yok */ }
                 return;
             } else if (prediction) {
                 resolvedCommand = prediction.match;
                 if (prediction.confidence !== 'exact') {
                     const th = getActiveTheme()?.global || {};
-                    predictionNote = `_💡 Running_ \`${prefix}${resolvedCommand}\`${th.footer ? `\n_${th.footer}_` : ''}`;
+                    predictionNote = `_💡 Çalıştırılıyor_ \`${prefix}${resolvedCommand}\`${th.footer ? `\n_${th.footer}_` : ''}`;
                 }
             }
         }
 
-        // ── Fetch group metadata FIRST — needed for LID resolution ────────────
-        // Modern WhatsApp sends group messages with a @lid (privacy/account ID)
-        // instead of a phone number. We must look up the LID in the participants
-        // list to find the sender's real phone JID before doing any comparisons.
+        // ── Grup meta verisini ÖNCE getir — LID çözümlemesi için gerekli ──────
+        // Modern WhatsApp, grup mesajlarını telefon numarası yerine bir @lid
+        // (gizlilik/hesap kimliği) ile gönderir. Herhangi bir karşılaştırma yapmadan
+        // önce göndericinin gerçek telefon JID'ini bulmak için LID'i katılımcı listesinde aramalıyız.
         let isAdmin       = false;
         let isBotAdmin    = false;
         let groupMetadata = null;
@@ -490,24 +490,24 @@ async function handleMessages(sock, message) {
             groupMetadata = await getCachedGroupMetadata(sock, jid);
         }
 
-        // ── Resolve sender phone (handle @lid format) ─────────────────────────
+        // ── Gönderici telefonunu çözümle (@lid formatını ele al) ──────────────
         const isLid = typeof from === 'string' && from.endsWith('@lid');
-        let resolvedFrom = from; // will be the real phone JID if LID is resolved
+        let resolvedFrom = from; // LID çözümlenirse gerçek telefon JID'i olacak
 
         if (isLid) {
-            // 1. Try group participants list (most accurate)
+            // 1. Grup katılımcı listesini dene (en doğru yöntem)
             if (groupMetadata?.participants) {
                 for (const p of groupMetadata.participants) {
                     const pLid = p.lid || '';
                     if (pLid && (pLid === from || jidNormalizedUser(pLid) === jidNormalizedUser(from))) {
-                        resolvedFrom = p.id; // swap LID for real phone JID
+                        resolvedFrom = p.id; // LID'i gerçek telefon JID'i ile değiştir
                         break;
                     }
                 }
             }
 
-            // 2. Fall back to the global LID→phone cache populated by silva.js
-            //    (every received message caches participant LID + phone via cacheLidPhone)
+            // 2. silva.js tarafından doldurulan genel LID→telefon önbelleğine geri dön
+            //    (alınan her mesaj, katılımcı LID + telefonunu cacheLidPhone ile önbelleğe alır)
             if (resolvedFrom === from && global.lidPhoneCache?.size) {
                 const normLid = from.split(':')[0].split('@')[0];
                 const cachedPhone = global.lidPhoneCache.get(normLid)
@@ -523,19 +523,19 @@ async function handleMessages(sock, message) {
 
         const fromNum = jidToNum(resolvedFrom);
 
-        // ── Resolve owner / bot phone numbers ─────────────────────────────────
-        // Pull directly from process.env first so stale config objects can't
-        // cause a false empty result, then fall through to config and global.
+        // ── Sahip / bot telefon numaralarını çözümle ──────────────────────────
+        // Eski config nesnelerinin yanlış boş sonuca yol açmaması için önce doğrudan
+        // process.env'den çek, ardından config ve global'e geri dön.
         const ownerRaw  = (process.env.OWNER_NUMBER || '').trim()
             || (typeof config.OWNER_NUMBER === 'string' ? config.OWNER_NUMBER.trim() : '')
             || (global.botNum || '');
         const ownerNum  = ownerRaw.replace(/\D/g, '');
         const botNum    = (global.botNum || '').replace(/\D/g, '');
 
-        // In full-LID groups WhatsApp never exposes phone numbers — the only
-        // identifier is the account LID.  If the sender's LID matches the bot's
-        // own LID they are the same WhatsApp account → owner.
-        // Both sides must be normalised (strip :deviceSuffix) before comparing.
+        // Tamamen LID tabanlı gruplarda WhatsApp telefon numaralarını asla göstermez — tek
+        // tanımlayıcı hesap LID'idir.  Göndericinin LID'i botun kendi LID'i ile
+        // eşleşiyorsa aynı WhatsApp hesabıdırlar → sahip.
+        // Karşılaştırmadan önce her iki taraf da normalleştirilmelidir (:cihazSoneki kaldırılır).
         const botLid     = jidNormalizedUser(global.botLid || '');
         const fromNorm   = jidNormalizedUser(from);
 
@@ -551,7 +551,7 @@ async function handleMessages(sock, message) {
             || (fromNum && botNum   && (fromNum === botNum   || sameNumber(fromNum, botNum)))
             || isSudo;
 
-        // ── Resolve group admin status ────────────────────────────────────────
+        // ── Grup yöneticisi durumunu çözümle ──────────────────────────────────
         if (isGroup && groupMetadata?.participants) {
             const botJid     = sock.user?.id || '';
             const botPhone   = botNum;
@@ -562,13 +562,13 @@ async function handleMessages(sock, message) {
                 const pPhone = (p.id || '').split('@')[0].replace(/\D/g, '');
                 const pLid   = p.lid || '';
 
-                // Is this participant the sender?
+                // Bu katılımcı gönderici mi?
                 const isSender =
                     areJidsSameUser(p.id, resolvedFrom) ||
                     (pLid && (pLid === from || jidNormalizedUser(pLid) === jidNormalizedUser(from))) ||
                     (pPhone && fromNum && sameNumber(pPhone, fromNum));
 
-                // Is this participant the bot?
+                // Bu katılımcı bot mu?
                 const isBot =
                     areJidsSameUser(p.id, botJid) ||
                     (botLid && (jidNormalizedUser(p.id) === botLid || (pLid && jidNormalizedUser(pLid) === botLid))) ||
@@ -579,14 +579,14 @@ async function handleMessages(sock, message) {
             }
         }
 
-        // ── Build unified context ─────────────────────────────────────────────
+        // ── Birleşik bağlamı (context) oluştur ────────────────────────────────
         const ctx = {
             sock,
             conn:          sock,
             m:             message,
             message,
-            sender,               // = jid (the chat) — where plugins send responses
-            from,                 // = individual who typed the command
+            sender,               // = jid (sohbet) — eklentilerin yanıt gönderdiği yer
+            from,                 // = komutu yazan kişi
             jid,
             chat:          jid,
             isGroup,
@@ -596,8 +596,8 @@ async function handleMessages(sock, message) {
             isSudo,
             args,
             text,
-            prefix,               // primary/canonical prefix for help text
-            usedPrefix,           // the actual prefix that triggered this command
+            prefix,               // yardım metni için birincil/kanonik önek
+            usedPrefix,           // bu komutu tetikleyen gerçek önek
             groupMetadata,
             contextInfo:   isGroup ? {} : GLOBAL_CONTEXT_INFO,
             mentionedJid:  msg.extendedTextMessage?.contextInfo?.mentionedJid || [],
@@ -608,16 +608,16 @@ async function handleMessages(sock, message) {
             command:       resolvedCommand,
         };
 
-        // ── Ban gate — banned users cannot trigger any command (owner always exempt) ──
+        // ── Yasak kapısı — yasaklı kullanıcılar hiçbir komutu tetikleyemez (sahip her zaman muaf) ──
         if (!isOwner && global.bannedUsers?.size) {
             const senderNorm = jidNormalizedUser(from);
             if (global.bannedUsers.has(from) || global.bannedUsers.has(senderNorm) || global.bannedUsers.has(resolvedFrom)) {
                 const th = getActiveTheme()?.global || {};
                 return await safeSend(sock, jid, {
                     text: [
-                        `⛔ *${th.botName || 'Silva MD'}*`,
+                        `⛔ *${th.botName || 'Alpha MD'}*`,
                         ``,
-                        getStr('owner') || 'You have been banned from using bot commands.',
+                        getStr('owner') || 'Bot komutlarını kullanmaktan yasaklandınız.',
                         ``,
                         th.footer ? `_${th.footer}_` : ''
                     ].filter(Boolean).join('\n')
@@ -625,7 +625,7 @@ async function handleMessages(sock, message) {
             }
         }
 
-        // ── Dispatch ──────────────────────────────────────────────────────────
+        // ── Yönlendirme (dispatch) ────────────────────────────────────────────
         const RECORDING_CMDS = new Set(['play', 'song', 'sticker', 's', 'tiktok', 'tt', 'ttdl', 'tiktokdl', 'youtube', 'yt', 'instagram', 'igdl', 'ig', 'insta', 'facebook', 'fb', 'fbdl']);
 
         const fromNum2 = from.split('@')[0];
@@ -637,16 +637,16 @@ async function handleMessages(sock, message) {
 
             const th = getActiveTheme()?.global || {};
 
-            // ── Scope guards — with themed alerts ────────────────────────────
+            // ── Kapsam korumaları — temalı uyarılarla ────────────────────────
             const allowGroup   = plugin.group   !== false;
             const allowPrivate = plugin.private !== false;
 
             if (isGroup && !allowGroup) {
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Silva MD'}*`,
+                        `*${th.botName || 'Alpha MD'}*`,
                         ``,
-                        getStr('private') || '⚠️ This feature is for private chats only.',
+                        getStr('private') || '⚠️ Bu özellik yalnızca özel sohbetlere yöneliktir.',
                         ``,
                         th.footer ? `_${th.footer}_` : ''
                     ].filter(Boolean).join('\n')
@@ -657,9 +657,9 @@ async function handleMessages(sock, message) {
             if (!isGroup && !allowPrivate) {
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Silva MD'}*`,
+                        `*${th.botName || 'Alpha MD'}*`,
                         ``,
-                        getStr('group') || '❗ This feature is for groups only.',
+                        getStr('group') || '❗ Bu özellik yalnızca gruplara yöneliktir.',
                         ``,
                         th.footer ? `_${th.footer}_` : ''
                     ].filter(Boolean).join('\n')
@@ -667,13 +667,13 @@ async function handleMessages(sock, message) {
                 continue;
             }
 
-            // ── Bot admin guard ───────────────────────────────────────────────
+            // ── Bot yönetici koruması ─────────────────────────────────────────
             if (plugin.botAdmin && !isBotAdmin) {
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Silva MD'}*`,
+                        `*${th.botName || 'Alpha MD'}*`,
                         ``,
-                        getStr('botAdmin') || '❗ Please give me admin role first.',
+                        getStr('botAdmin') || '❗ Lütfen önce bana yönetici rolü ver.',
                         ``,
                         th.footer ? `_${th.footer}_` : ''
                     ].filter(Boolean).join('\n')
@@ -681,7 +681,7 @@ async function handleMessages(sock, message) {
                 continue;
             }
 
-            // ── Permission check ──────────────────────────────────────────────
+            // ── Yetki kontrolü ────────────────────────────────────────────────
             const perm = (plugin.permission || PERM.PUBLIC).toLowerCase();
             let allowed = false;
             if      (perm === PERM.PUBLIC) allowed = true;
@@ -691,11 +691,11 @@ async function handleMessages(sock, message) {
             if (!allowed) {
                 const alertKey = perm === PERM.OWNER ? 'owner' : 'admin';
                 const fallback = perm === PERM.OWNER
-                    ? '⛔ This command is reserved for the bot owner.'
-                    : '⛔ This command is for group admins only.';
+                    ? '⛔ Bu komut yalnızca bot sahibine ayrılmıştır.'
+                    : '⛔ Bu komut yalnızca grup yöneticilerine yöneliktir.';
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Silva MD'}*`,
+                        `*${th.botName || 'Alpha MD'}*`,
                         ``,
                         getStr(alertKey) || fallback,
                         ``,
@@ -705,15 +705,15 @@ async function handleMessages(sock, message) {
                 continue;
             }
 
-            // ── Prediction note: let user know what command was resolved ────
+            // ── Tahmin notu: kullanıcıya hangi komutun çözümlendiğini bildir ──
             if (predictionNote) {
                 await safeSend(sock, jid, { text: predictionNote }, { quoted: message });
                 predictionNote = null;
             }
 
-            // ── Override presence to recording for media commands ───────────
+            // ── Medya komutları için durumu (presence) kayıt olarak değiştir ──
             if (config.AUTO_RECORDING && RECORDING_CMDS.has(resolvedCommand)) {
-                try { await sock.sendPresenceUpdate('recording', jid); } catch { /* non-fatal */ }
+                try { await sock.sendPresenceUpdate('recording', jid); } catch { /* kritik değil */ }
             }
 
             try {
@@ -727,11 +727,11 @@ async function handleMessages(sock, message) {
                 console.error(`[Plugin:${command}] ${isTimeout ? '⏱ TIMEOUT' : ''} ${err.stack || err.message}`);
                 const errTheme = getActiveTheme();
                 const errMsg = isTimeout
-                    ? `⏱ That command took too long and was cancelled. Try again.`
-                    : (errTheme?.error?.text || `⚠️ Command error: ${err.message || 'unknown error'}`);
+                    ? `⏱ Bu komut çok uzun sürdü ve iptal edildi. Tekrar deneyin.`
+                    : (errTheme?.error?.text || `⚠️ Komut hatası: ${err.message || 'bilinmeyen hata'}`);
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Silva MD'}*`,
+                        `*${th.botName || 'Alpha MD'}*`,
                         ``,
                         errMsg,
                         ``,
@@ -740,12 +740,12 @@ async function handleMessages(sock, message) {
                 }, { quoted: message });
             }
 
-            // ── Auto-presence: back to paused after responding ───────────────
+            // ── Otomatik durum: yanıt verdikten sonra tekrar duraklatılmış duruma geç ──
             if (config.AUTO_TYPING || config.AUTO_RECORDING) {
-                try { await sock.sendPresenceUpdate('paused', jid); } catch { /* non-fatal */ }
+                try { await sock.sendPresenceUpdate('paused', jid); } catch { /* kritik değil */ }
             }
 
-            // ── Only run the first matching plugin — stop after one dispatch ─
+            // ── Yalnızca ilk eşleşen eklentiyi çalıştır — bir yönlendirmeden sonra dur ──
             break;
         }
     } catch (err) {
