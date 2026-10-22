@@ -95,7 +95,7 @@ module.exports = {
             try {
                 await sock.sendMessage(sender, {
                     [isVideo ? 'video' : 'image']: { url: item.url },
-                    caption: `🐦 *Twitter Download*\n_Powered by Silva MD_`,
+                    caption: `🐦 *Twitter Download*\n_Alpha tarafından_`,
                     contextInfo
                 }, { quoted: message });
             } catch {

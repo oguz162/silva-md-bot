@@ -38,7 +38,7 @@ module.exports = {
         try {
             const res = await axios.get(
                 'https://zenquotes.io/api/random',
-                { headers: { 'User-Agent': 'SilvaMD-Bot/2.0' }, timeout: 7000 }
+                { headers: { 'User-Agent': 'Alpha-Bot/2.0' }, timeout: 7000 }
             );
             const q = Array.isArray(res.data) ? res.data[0] : res.data;
             if (q?.q && q?.a) {

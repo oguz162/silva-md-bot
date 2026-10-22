@@ -45,7 +45,7 @@ module.exports = {
 💨 Wind: ${data.wind.speed} km/h
 🌤️ ${data.weather[0].description.charAt(0).toUpperCase() + data.weather[0].description.slice(1)}
 
-_Powered by ${getStr('botName') || 'Silva MD'}_`,
+_Destekleyen: ${getStr('botName') || 'Alpha'}_`,
                 contextInfo
             }, { quoted: message });
         } catch (err) {

@@ -175,7 +175,7 @@ module.exports = [
                         `⚠️ *Warning!* @${senderNum}\n\n` +
                         `Your message was deleted — it contained inappropriate language.\n` +
                         `Please keep the chat respectful! 🙏\n\n` +
-                        `_${config.BOT_NAME || 'Silva MD'} Anti-Bad Words_`,
+                        `_${config.BOT_NAME || 'Alpha'} Anti-Bad Words_`,
                     mentions: [sender],
                 }, { quoted: message });
             } catch { /* silent fail */ }

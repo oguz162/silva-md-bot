@@ -33,7 +33,7 @@ module.exports = {
 ⏰ *Expires:*     ${events.expiration || 'N/A'}
 🖥️ *Nameservers:* ${ns}
 
-_Powered by Silva MD_`,
+_Alpha tarafından_`,
                 contextInfo
             }, { quoted: message });
         } catch (e) {

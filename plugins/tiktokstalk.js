@@ -132,7 +132,7 @@ module.exports = {
         }
 
         lines.push(`• *Profile:* https://www.tiktok.com/@${u.uniqueId || username}`);
-        lines.push(`_Powered by ${getStr('botName') || 'Silva MD'} · TikWM API_`);
+        lines.push(`_Destekleyen: ${getStr('botName') || 'Alpha'} · TikWM API_`);
 
         const avatarUrl = u.avatarLarger || u.avatarThumb || u.avatar || null;
 
