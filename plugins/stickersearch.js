@@ -27,7 +27,7 @@ module.exports = {
                 video:     Buffer.from(gifData),
                 gifPlayback: true,
                 mimetype:  'video/mp4',
-                caption:   `🎭 *${query}* — Silva MD`,
+                caption:   `🎭 *${query}* — Alpha`,
                 contextInfo
             }, { quoted: message });
         } catch (e) {

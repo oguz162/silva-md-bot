@@ -3,14 +3,14 @@
 const axios  = require('axios');
 const moment = require('moment-timezone');
 
-const REPO_URL    = 'https://github.com/SilvaTechB/silva-md-bot';
-const WEBSITE_URL = 'https://silvatech.co.ke';
-const WA_CHANNEL  = 'https://whatsapp.com/channel/0029VaksrRh6GcGnT0J05n0j';
-const SUPPORT_URL = 'https://chat.whatsapp.com/GzCZZxVnAHMINWdPQkGwJR';
+const REPO_URL    = '';
+const WEBSITE_URL = '';
+const WA_CHANNEL  = '';
+const SUPPORT_URL = '';
 
 module.exports = {
     commands:    ['repo', 'repository', 'github'],
-    description: 'Show Silva MD repository info',
+    description: 'Alpha bot bilgilerini gösterir',
     permission:  'public',
     group:       true,
     private:     true,
@@ -22,14 +22,14 @@ module.exports = {
         let data = null;
         try {
             const res = await axios.get(
-                'https://api.github.com/repos/SilvaTechB/silva-md-bot',
+                'https://api.github.com/repos/AlphaB/silva-md-bot',
                 { timeout: 10000 }
             );
             data = res.data;
         } catch { /* use fallback */ }
 
         const caption = data
-            ? `*✨ SILVA MD — REPOSITORY INFO*\n\n` +
+            ? `*✨ Alpha — REPOSITORY INFO*\n\n` +
               `📦 *Repo:* ${data.name}\n` +
               `📝 *About:* ${data.description || 'WhatsApp MD Bot'}\n\n` +
               `⭐ *Stars:* ${data.stargazers_count.toLocaleString()}\n` +
@@ -39,20 +39,12 @@ module.exports = {
               `📜 *License:* ${data.license?.name || 'MIT'}\n` +
               `⚠️ *Open Issues:* ${data.open_issues}\n` +
               `🕒 *Updated:* ${moment(data.updated_at).fromNow()}\n\n` +
-              `🔗 *GitHub:* ${REPO_URL}\n` +
-              `🌐 *Website:* ${WEBSITE_URL}\n` +
-              `📢 *Newsletter:* ${WA_CHANNEL}\n` +
-              `💬 *Support:* ${SUPPORT_URL}\n\n` +
-              `⚡ _Powered by Silva Tech Inc_`
-            : `*✨ SILVA MD — REPOSITORY*\n\n` +
+              `⚡ _Alpha tarafından_`
+            : `*✨ Alpha — REPOSITORY*\n\n` +
               `📦 *Repo:* silva-md-bot\n` +
               `💻 *Language:* JavaScript\n` +
               `📜 *License:* MIT\n\n` +
-              `🔗 *GitHub:* ${REPO_URL}\n` +
-              `🌐 *Website:* ${WEBSITE_URL}\n` +
-              `📢 *Newsletter:* ${WA_CHANNEL}\n` +
-              `💬 *Support:* ${SUPPORT_URL}\n\n` +
-              `⚡ _Powered by Silva Tech Inc_`;
+              `⚡ _Alpha tarafından_`;
 
         const imgUrl = 'https://files.catbox.moe/5uli5p.jpeg';
 
@@ -62,8 +54,8 @@ module.exports = {
             contextInfo: {
                 ...contextInfo,
                 externalAdReply: {
-                    title:                 'Silva MD — Open Source Bot',
-                    body:                  'Star us on GitHub!',
+                    title:                 'Alpha — WhatsApp Botu',
+                    body:                  'Yapımcı: Zlose',
                     thumbnailUrl:          imgUrl,
                     sourceUrl:             REPO_URL,
                     mediaType:             1,

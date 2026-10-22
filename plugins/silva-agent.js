@@ -22,8 +22,8 @@ function getMemory(jid) {
 function buildContextPrompt(jid, currentQuery) {
     const mem = getMemory(jid).slice(-6); // last 6 turns
     if (!mem.length) return currentQuery;
-    const history = mem.map(m => `${m.role === 'user' ? 'User' : 'Silva'}: ${m.text}`).join('\n');
-    return `You are Silva, a smart, friendly WhatsApp AI assistant. Stay in character. Be concise and helpful.\n\nConversation so far:\n${history}\n\nUser: ${currentQuery}\nSilva:`;
+    const history = mem.map(m => `${m.role === 'user' ? 'User' : 'Alpha'}: ${m.text}`).join('\n');
+    return `Sen Alpha'sın; Zlose tarafından geliştirilmiş akıllı ve samimi bir WhatsApp yapay zeka asistanısın. Her zaman Türkçe yanıt ver. Stay in character. Be concise and helpful.\n\nConversation so far:\n${history}\n\nUser: ${currentQuery}\nSilva:`;
 }
 const os = require('os');
 
@@ -40,15 +40,15 @@ function detectPlatform() {
 }
 
 const BOT_IDENTITY = {
-    name: 'Silva MD',
+    name: 'Alpha',
     version: '4.0.1',
     language: 'Node.js',
     library: 'Baileys (silva-baileys)',
-    repo: 'https://github.com/SilvaTechB/silva-md-bot',
-    website: 'https://silvatech.co.ke',
+    repo: '',
+    website: '',
     get platform() { return detectPlatform(); },
-    developer: 'SilvaTech',
-    ownerName: config.OWNER_NAME || 'Silva MD',
+    developer: 'Alpha',
+    ownerName: config.OWNER_NAME || 'Alpha',
     ownerNumber: config.OWNER_NUMBER || '',
     features: [
         'Auto View Status', 'Anti-Delete Messages', 'Download Songs & Videos',
@@ -191,8 +191,8 @@ const intentMap = [
     { pattern: /\bproverb\b|\bsaying\b|\bwisdom\b|\badage\b/i,                         cmd: 'proverb',     label: '📜 Fetching a proverb',         strip: /\bproverb\b|\bsaying\b|\bwisdom\b|\badage\b/gi },
     { pattern: /\brhyme\b/i,                                                             cmd: 'rhyme',       label: '🎵 Finding rhymes',             strip: /\brhyme\b/gi },
 
-    // ── GitHub SilvaTechB ────────────────────────────────────────────────────
-    { pattern: /\bsilvatech\b.*\b(repos?|github|projects?)\b|\b(silvatech|silvarepos)\b/i, cmd: 'silvatech', label: '🐙 Fetching SilvaTechB repos',  strip: /\bsilvatech\b|\bsilvarepos?\b/gi },
+    // ── GitHub AlphaB ────────────────────────────────────────────────────
+    { pattern: /\bsilvatech\b.*\b(repos?|github|projects?)\b|\b(silvatech|silvarepos)\b/i, cmd: 'silvatech', label: '🐙 Fetching AlphaB repos',  strip: /\bsilvatech\b|\bsilvarepos?\b/gi },
 
     // ── Bot Status ───────────────────────────────────────────────────────────
     { pattern: /\buptime\b|\bruntime\b/i,                                                cmd: 'uptime',      label: '⏱️ Checking uptime',           strip: /\buptime\b|\bruntime\b/gi },
@@ -217,7 +217,7 @@ function findIntent(query) {
 // ── Built-in smart conversation engine (no API key needed) ───────────────────
 const smartResponses = [
     { p: /^(hi+|hello+|hey+|howdy|sup|yo+|hii+|ello)\b/i,
-      r: [`Hey! 👋 What can I do for you today?`, `Hello! 😊 How can I help you?`, `Hey there! I'm Silva, your WhatsApp assistant. What do you need? 🤖`] },
+      r: [`Hey! 👋 What can I do for you today?`, `Hello! 😊 How can I help you?`, `Hey there! I'm Alpha, your WhatsApp assistant. What do you need? 🤖`] },
     { p: /how (are you|r u|are u|do you do)|what('?s| is) (up|good)|wassup|wyd\b/i,
       r: [`All systems go! ⚡ I'm here and ready to help. What do you need?`, `Running perfectly! 🤖 What can I do for you?`, `Doing great, thanks for asking! 😊 Ready to assist.`] },
     { p: /thank(s| you|u)|thx|ty\b/i,
@@ -233,7 +233,7 @@ const smartResponses = [
     { p: /you (suck|('re|are) (bad|terrible|useless|stupid|trash))/i,
       r: [`That hurts 😢 but I'll try to do better! Let me know what went wrong.`, `I'm always improving! 🤖 Tell me what I can do better.`] },
     { p: /what('?s| is) your name|your name\b|who are you\b/i,
-      r: [`I'm *Silva* 🤖 — your intelligent WhatsApp assistant! Built on ${BOT_IDENTITY.name} v${BOT_IDENTITY.version}.`] },
+      r: [`I'm *Alpha* 🤖 — your intelligent WhatsApp assistant! Built on ${BOT_IDENTITY.name} v${BOT_IDENTITY.version}.`] },
     { p: /what can you do|your (capabilities|powers|features|abilities)\b/i,
       r: [`I can: 🎵 play music, 📸 make stickers, ⬇️ download from TikTok/Instagram/YouTube, 🌤️ check weather, 📚 search Wikipedia, 🌐 translate text, 👥 manage groups, and 1400+ commands! Type \`silva help\` to see everything.`] },
     { p: /what time is it|current time|time now\b/i,
@@ -275,7 +275,7 @@ async function callChAt(prompt) {
                 CHAT_ENDPOINT,
                 { message: prompt },
                 {
-                    headers: { 'Content-Type': 'application/json', 'User-Agent': 'SilvaMD-Bot/2.0' },
+                    headers: { 'Content-Type': 'application/json', 'User-Agent': 'Alpha-Bot/2.0' },
                     timeout: 12000,
                 }
             );
@@ -323,7 +323,7 @@ function offlineSmartReply(query, pluginKeys) {
     for (const [pattern, builder] of intents) {
         if (pattern.test(q)) {
             const match = q.match(/\b[a-z]{3,}\b/g)?.filter(w => !['what','that','this','with','have','your','from','about','does','will','when','where'].includes(w));
-            return `🤖 *Silva*\n\n` + builder(match?.slice(-2).join(' ') || '');
+            return `🤖 *Alpha*\n\n` + builder(match?.slice(-2).join(' ') || '');
         }
     }
 
@@ -334,16 +334,16 @@ function offlineSmartReply(query, pluginKeys) {
             `🤔 Interesting! My AI brain is having a moment. Try \`.ask ${query.slice(0, 40)}\` again in a few seconds — I'll get it.`,
             `💡 Good question! My connection is a bit slow right now. Type \`.wiki ${query.slice(0, 30)}\` for a quick answer, or retry in a moment!`,
         ];
-        return `🤖 *Silva*\n\n` + responses[Math.floor(Math.random() * responses.length)];
+        return `🤖 *Alpha*\n\n` + responses[Math.floor(Math.random() * responses.length)];
     }
 
     // Generic catch-all — always acknowledges and gives direction
     const catchAll = [
         `Got your message! 👋 My AI is connecting… try again in a moment or type \`.menu\` to see what I can do.`,
         `I'm here! 🤖 Having a brief connection blip. Retry in a few seconds — ch.at will pick it up. Or try \`.ask ${query.slice(0, 30)}\``,
-        `Silva here! 💬 My response engine is warming up. One more try should do it — or use \`.menu\` to browse all commands!`,
+        `Alpha here! 💬 My response engine is warming up. One more try should do it — or use \`.menu\` to browse all commands!`,
     ];
-    return `🤖 *Silva*\n\n` + catchAll[Math.floor(Math.random() * catchAll.length)];
+    return `🤖 *Alpha*\n\n` + catchAll[Math.floor(Math.random() * catchAll.length)];
 }
 
 // ── Main AI dispatcher ────────────────────────────────────────────────────────
@@ -377,7 +377,7 @@ async function askFreeAI(query, jid, systemPrompt, _pluginKeys) {
     // popcat is fast — fire as an extra parallel contestant
     const popcatPromise = axios.get(
         'https://api.popcat.xyz/chatbot?msg=' + encodeURIComponent(query.slice(0, 200)) +
-        '&owner=' + encodeURIComponent(config.OWNER_NAME || 'Silva') + '&botname=Silva',
+        '&owner=' + encodeURIComponent(config.OWNER_NAME || 'Alpha') + '&botname=Alpha',
         { timeout: 7000 }
     ).then(r => r.data?.response || null).catch(() => null);
 
@@ -464,10 +464,10 @@ const agentActions = {
     date:     /what\s*(date|day|today)|current\s*date|today/i,
     calc:     /calc|compute|math|solve|\d+\s*[\+\-\*\/\%\^]\s*\d+/i,
 
-    // ── GitHub SilvaTechB (read-only) ─────────────────────────────────────────
+    // ── GitHub AlphaB (read-only) ─────────────────────────────────────────
     github_silvatech: /\b(silvatech|silvatechwb|silvatechb|silvarepos)\b|\bsilvatech\s+(repos?|github|projects?|code|files?|zip|download)\b/i,
 
-    // ── GitHub repo file/zip fetch ("send me a clip of SilvaTechB/repo") ──────
+    // ── GitHub repo file/zip fetch ("send me a clip of AlphaB/repo") ──────
     github_repo_zip:  /\b(clip|zip|archive|download|send\s+me)\b.*\b([\w-]+\/[\w-]+)\b|\b([\w-]+\/[\w-]+)\b.*\b(zip|clone|download)\b/i,
     github_repo_file: /\b(get|fetch|read|show|send)\b.+\b(from|in|of)\b.+\b([\w\/-]+\/[\w\/-]+\.[\w]+)\b|\b(readme|package\.json|index\.js|config|\.env)\b.*\b(from|in|of)\b.+\bsilva/i,
 
@@ -502,7 +502,7 @@ const agentActions = {
 
 module.exports = {
     commands: ['silva', 'agent', 'do', 'assistant', 'ask'],
-    description: 'Silva - AI assistant that runs commands, creates content, searches the web, and knows everything about the bot',
+    description: 'Alpha - AI assistant that runs commands, creates content, searches the web, and knows everything about the bot',
     permission: 'public',
     run: async (sock, message, args, ctx) => {
         const { jid, reply, safeSend, isOwner, isGroup, isAdmin, isBotAdmin } = ctx;
@@ -524,7 +524,7 @@ module.exports = {
             `• "silva proverb" / "silva wisdom" — wise saying\n` +
             `• "silva rhyme moon" — words that rhyme\n\n` +
             `🐙 *GitHub*\n` +
-            `• "silva silvatech repos" — list SilvaTechB repos\n` +
+            `• "silva silvatech repos" — list AlphaB repos\n` +
             `• ".silvatech <repo>" — repo stats & files\n` +
             `• ".silvatech zip <repo>" — download link\n\n` +
             `📲 *Downloads*\n` +
@@ -637,9 +637,9 @@ module.exports = {
             const sudoCount = global.sudoUsers?.size || 0;
             response =
                 `👑 *Bot Owner*\n\n` +
-                `• Name: *${config.OWNER_NAME || 'Silva MD'}*\n` +
+                `• Name: *${config.OWNER_NAME || 'Alpha'}*\n` +
                 `• Number: *+${(config.OWNER_NUMBER || '').replace(/\D/g, '')}*\n` +
-                `• Bot: *${config.BOT_NAME || 'Silva MD'}*\n` +
+                `• Bot: *${config.BOT_NAME || 'Alpha'}*\n` +
                 `• Developer: *${BOT_IDENTITY.developer}*\n` +
                 `• Website: ${BOT_IDENTITY.website}\n` +
                 `• GitHub: ${BOT_IDENTITY.repo}\n` +
@@ -688,11 +688,11 @@ module.exports = {
         else if (agentActions.create_bio.test(query)) {
             const topic = query.replace(agentActions.create_bio, '').trim();
             const bios = [
-                `✨ ${config.BOT_NAME} | Always Online | Powered by ${BOT_IDENTITY.developer} ⚡`,
+                `✨ ${config.BOT_NAME} | Always Online | Destekleyen: ${BOT_IDENTITY.developer} ⚡`,
                 `🤖 ${config.BOT_NAME} v${BOT_IDENTITY.version} | ${pluginMap().size}+ Commands | ${BOT_IDENTITY.website}`,
                 `👑 Owned by ${config.OWNER_NAME} | Bot: ${config.BOT_NAME} | 24/7 Active`,
                 `🔥 ${config.BOT_NAME} | Multi-Device WhatsApp Bot | ${BOT_IDENTITY.features.length} Smart Features`,
-                `⚡ Powered by ${BOT_IDENTITY.developer} | ${config.BOT_NAME} | The Ultimate WA Bot`,
+                `⚡ Destekleyen: ${BOT_IDENTITY.developer} | ${config.BOT_NAME} | The Ultimate WA Bot`,
                 `🌟 ${config.BOT_NAME} | AI-Powered | Anti-Ban Safe | ${config.OWNER_NAME}`,
             ];
             response = `✍️ *Bio Ideas${topic ? ` (${topic})` : ''}*\n\n${bios.map((b, i) => `*${i + 1}.* ${b}`).join('\n\n')}\n\n_Copy any bio above! Use \`.setbio <text>\` to set it._`;
@@ -788,7 +788,7 @@ module.exports = {
                 `*2.* ⚡ *${topic || 'Group Name'}*\n\n` +
                 `A group for ${topic || 'our community'}.\n` +
                 `🔗 ${BOT_IDENTITY.website}\n` +
-                `📱 Powered by ${config.BOT_NAME}\n\n` +
+                `📱 Destekleyen: ${config.BOT_NAME}\n\n` +
                 `_Use \`.setdesc <text>\` to apply._`;
         }
 
@@ -797,7 +797,7 @@ module.exports = {
             response =
                 `✍️ *Caption Ideas*\n\n` +
                 `*1.* ${topic ? `✨ ${topic} ✨` : '✨ Living my best life ✨'}\n_— ${config.OWNER_NAME}_\n\n` +
-                `*2.* 🔥 ${topic || 'Powered by ambition, driven by purpose'} 💯\n\n` +
+                `*2.* 🔥 ${topic || 'Destekleyen: ambition, driven by purpose'} 💯\n\n` +
                 `*3.* 🌍 ${topic || 'Making moves in silence'} 🤫\n_${config.BOT_NAME} © ${new Date().getFullYear()}_\n\n` +
                 `*4.* ⚡ ${topic || 'Success is the only option'} 👑\n\n` +
                 `_Use \`.setcaption <text>\` to set bot caption._`;
@@ -1062,7 +1062,7 @@ module.exports = {
         } else if (agentActions.help.test(query)) {
             const pm = pluginMap();
             response =
-                `🤖 *Silva — Full Capabilities*\n\n` +
+                `🤖 *Alpha — Full Capabilities*\n\n` +
                 `📋 *Run Commands* (${pm.size} available)\n` +
                 `• "run menu" • "do alive" • "use sticker"\n` +
                 `• "run <any command name>"\n\n` +
@@ -1477,7 +1477,7 @@ module.exports = {
             reply(`🧹 *Memory cleared!*\n\nI've forgotten our conversation history. Fresh start! 🤖`);
             return;
 
-        // ── GitHub SilvaTechB (read-only) ─────────────────────────────────────
+        // ── GitHub AlphaB (read-only) ─────────────────────────────────────
         } else if (agentActions.github_silvatech.test(query)) {
             const pm = pluginMap();
             const ghPlugin = pm.get('silvatech') || pm.get('silvarepos');
@@ -1492,17 +1492,17 @@ module.exports = {
             }
             return;
 
-        // ── GitHub repo ZIP download ("send me a clip of SilvaTechB/silva-md-bot") ──
+        // ── GitHub repo ZIP download ("send me a clip of AlphaB/silva-md-bot") ──
         } else if (agentActions.github_repo_zip.test(query)) {
             const repoMatch = query.match(/\b([\w-]+\/[\w-]+)\b/);
             const fullRepo = repoMatch ? repoMatch[1] : null;
             if (!fullRepo || fullRepo.includes('silva') === false && !fullRepo.includes('/')) {
-                return reply(`📦 Please specify the repo in *owner/repo* format.\n\nExample: _silva send me a clip of SilvaTechB/silva-md-bot_`);
+                return reply(`📦 Please specify the repo in *owner/repo* format.\n\nExample: _silva send me a clip of AlphaB/silva-md-bot_`);
             }
             const [owner, repo] = fullRepo.split('/');
             await safeSend({ text: `📦 _Preparing download link for *${fullRepo}*..._` }, { quoted: message });
             try {
-                const ghHeaders = { 'User-Agent': 'SilvaMD-Bot/2.0', 'Accept': 'application/vnd.github+json' };
+                const ghHeaders = { 'User-Agent': 'Alpha-Bot/2.0', 'Accept': 'application/vnd.github+json' };
                 const res = await axios.get(`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}`, { headers: ghHeaders, timeout: 8000 });
                 const r = res.data;
                 const branch = r.default_branch || 'main';
@@ -1537,7 +1537,7 @@ module.exports = {
             const fileKeyword = query.match(/\b(readme|package\.json|index\.js|config|handler|silva)\b/i)?.[1] || '';
 
             if (!repoMatch) {
-                return reply(`📄 Specify the repo and file.\n\nExamples:\n• _silva get README from SilvaTechB/silva-md-bot_\n• _.silvatech silva-md-bot README.md_`);
+                return reply(`📄 Specify the repo and file.\n\nExamples:\n• _silva get README from AlphaB/silva-md-bot_\n• _.silvatech silva-md-bot README.md_`);
             }
 
             const [owner, repo] = repoMatch[1].split('/');
@@ -1546,7 +1546,7 @@ module.exports = {
 
             await safeSend({ text: `📄 _Fetching \`${filePath}\` from *${owner}/${repo}*..._` }, { quoted: message });
             try {
-                const ghHeaders = { 'User-Agent': 'SilvaMD-Bot/2.0', 'Accept': 'application/vnd.github+json' };
+                const ghHeaders = { 'User-Agent': 'Alpha-Bot/2.0', 'Accept': 'application/vnd.github+json' };
                 const res = await axios.get(
                     `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${encodeURIComponent(filePath)}`,
                     { headers: ghHeaders, timeout: 10000 }
@@ -1695,7 +1695,7 @@ module.exports = {
             // Step 3: instant built-in smart responses (no API call)
             const smart = getSmartResponse(query);
             if (smart) {
-                response = `🤖 *Silva*\n\n${smart}`;
+                response = `🤖 *Alpha*\n\n${smart}`;
                 rememberMessage(jid, 'user', query);
                 rememberMessage(jid, 'bot', smart);
             } else {
@@ -1708,8 +1708,8 @@ module.exports = {
                 // Build a strong system prompt that tells ch.at exactly when to route a plugin
                 const toolList = [...pm.keys()].slice(0, 100).join(', ');
                 const systemPrompt =
-                    `You are Silva, a smart WhatsApp bot assistant. ` +
-                    `Owner: ${config.OWNER_NAME || 'Silva'}. Bot: ${config.BOT_NAME || 'Silva MD'}.\n` +
+                    `You are Alpha, a smart WhatsApp bot assistant. ` +
+                    `Owner: ${config.OWNER_NAME || 'Alpha'}. Bot: ${config.BOT_NAME || 'Alpha'}.\n` +
                     `Available bot commands: ${toolList}.\n\n` +
                     `ROUTING RULES (follow exactly):\n` +
                     `• If the user wants music/songs → reply: TOOL:play|<song name>\n` +
@@ -1744,7 +1744,7 @@ module.exports = {
                             const mem = getMemory(jid).slice(-6);
                             const geminiHistory = [
                                 { role: 'user',  parts: [{ text: systemPrompt }] },
-                                { role: 'model', parts: [{ text: `Got it! I'm Silva, ready to help. 🤖` }] },
+                                { role: 'model', parts: [{ text: `Got it! I'm Alpha, ready to help. 🤖` }] },
                                 ...mem.slice(0, -1).map(m => ({
                                     role: m.role === 'user' ? 'user' : 'model',
                                     parts: [{ text: m.text }],
@@ -1790,7 +1790,7 @@ module.exports = {
                 }
 
                 // Conversational response (may come from ch.at, Gemini, or offline fallback)
-                response = aiReply.startsWith('🤖 *Silva*') ? aiReply : `🤖 *Silva*\n\n${aiReply}`;
+                response = aiReply.startsWith('🤖 *Alpha*') ? aiReply : `🤖 *Alpha*\n\n${aiReply}`;
                 rememberMessage(jid, 'bot', aiReply.slice(0, 300));
             }
         }

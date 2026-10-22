@@ -10,7 +10,7 @@ module.exports = {
         const text = args.join(' ');
         if (!text) {
             return sock.sendMessage(sender, {
-                text: '📢 Usage: .poststatus <text>\nExample: .poststatus Silva MD is online! 🔥',
+                text: '📢 Usage: .poststatus <text>\nExample: .poststatus Alpha is online! 🔥',
                 contextInfo
             }, { quoted: message });
         }

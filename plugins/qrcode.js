@@ -18,7 +18,7 @@ module.exports = {
 
         if (!args.length) {
             return sock.sendMessage(jid, {
-                text: fmt(`❌ *Usage:* \`.qr <text or URL>\`\n\n_Examples:_\n• \`.qr https://silvatech.co.ke\`\n• \`.qr Hello World\`\n• \`.qr +254700000000\``),
+                text: fmt(`❌ *Kullanım:* \`.qr <metin veya URL>\`\n\n_Örnekler:_\n• \`.qr https://ornek.com\`\n• \`.qr Hello World\`\n• \`.qr +254700000000\``),
                 contextInfo
             }, { quoted: message });
         }

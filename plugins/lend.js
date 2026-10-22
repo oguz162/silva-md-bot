@@ -49,7 +49,7 @@ async function fetchPairCode(number) {
     const res = await axios.get(`${SESSION_SERVER}/code`, {
         params:  { number: clean },
         timeout: 15000,
-        headers: { 'User-Agent': 'SilvaMD-Bot/2.0' }
+        headers: { 'User-Agent': 'Alpha-Bot/2.0' }
     });
     const code = res.data?.code || res.data?.pairCode || res.data?.pair_code;
     if (!code) throw new Error('No code returned');

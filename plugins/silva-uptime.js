@@ -11,7 +11,7 @@ module.exports = {
     private:     true,
     run: async (sock, message, args, { sender, contextInfo }) => {
         try {
-            const botName = getStr('botName') || 'Silva MD';
+            const botName = getStr('botName') || 'Alpha';
             const pic     = getStr('pic1') || 'https://files.catbox.moe/5uli5p.jpeg';
 
             const uptime  = process.uptime();
@@ -37,7 +37,7 @@ module.exports = {
 🏗 *Platform:* ${platform}
 🛠 *RAM:* ${freeMem} GB / ${totalMem} GB
 
-✨ _Powered by ${botName}_`;
+✨ _Destekleyen: ${botName}_`;
 
             await sock.sendMessage(sender, {
                 image:   { url: pic },

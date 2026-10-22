@@ -48,7 +48,7 @@ module.exports = {
             const form = new URLSearchParams({
                 content:  text,
                 syntax:   'text',
-                title:    'Silva MD Paste',
+                title:    'Alpha Paste',
                 expiry_days: '30',
             });
             const res = await axios.post('https://dpaste.org/api/', form.toString(), {

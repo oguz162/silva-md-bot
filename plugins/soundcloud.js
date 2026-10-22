@@ -53,7 +53,7 @@ module.exports = {
                     audio: { url: audioUrl }, mimetype: 'audio/mpeg', ptt: false, contextInfo
                 }, { quoted: message });
                 await sock.sendMessage(sender, {
-                    text: `🎵 *${title}*\n👤 ${author}\n_Powered by Silva MD_`, contextInfo
+                    text: `🎵 *${title}*\n👤 ${author}\n_Alpha tarafından_`, contextInfo
                 }, { quoted: message });
                 return;
             } catch {}

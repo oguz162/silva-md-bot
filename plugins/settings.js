@@ -28,7 +28,7 @@ module.exports = {
     async run(sock, message, args, ctx) {
         const { reply } = ctx;
 
-        const botName  = getStr('botName') || config.BOT_NAME  || 'Silva MD';
+        const botName  = getStr('botName') || config.BOT_NAME  || 'Alpha';
         const ownerNum = (config.OWNER_NUMBER || process.env.OWNER_NUMBER || '').replace(/\D/g, '');
         const prefix   = config.PREFIX || '.';
         const theme    = config.THEME  || 'silva';

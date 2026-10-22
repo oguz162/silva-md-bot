@@ -27,7 +27,7 @@ module.exports = {
 💬 *Status:* ${statusText}
 🌐 *JID:* ${target}
 
-_Powered by Silva MD_`;
+_Alpha tarafından_`;
 
             if (pp) {
                 await sock.sendMessage(chatId, { image: { url: pp }, caption: text, contextInfo }, { quoted: message });

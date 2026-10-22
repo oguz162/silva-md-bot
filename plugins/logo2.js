@@ -105,7 +105,7 @@ module.exports = {
             return send(
                 `🎨 *${cmd.toUpperCase()} Style*\n\n` +
                 `❌ *Usage:* \`.${cmd} <your text>\`\n\n` +
-                `Example: \`.${cmd} Silva MD\`\n\n` +
+                `Example: \`.${cmd} Alpha\`\n\n` +
                 `_Use \`.logolist\` to see all styles_`
             );
         }

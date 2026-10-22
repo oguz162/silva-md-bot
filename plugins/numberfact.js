@@ -49,7 +49,7 @@ module.exports = {
         try {
             const res = await axios.get(
                 'https://uselessfacts.jsph.pl/api/v2/facts/random',
-                { headers: { 'Accept': 'application/json', 'User-Agent': 'SilvaMD-Bot/2.0' }, timeout: 8000 }
+                { headers: { 'Accept': 'application/json', 'User-Agent': 'Alpha-Bot/2.0' }, timeout: 8000 }
             );
             const fact = res.data?.text;
             if (fact) {
