@@ -38,7 +38,7 @@ module.exports = {
         await sock.sendPresenceUpdate('composing', jid);
 
         const headers = {
-            'User-Agent': 'SilvaMD-Bot/2.0',
+            'User-Agent': 'Alpha-Bot/2.0',
             'Accept':     'application/vnd.github+json',
         };
 
@@ -136,7 +136,7 @@ module.exports = {
         }
 
         lines.push(`• *Profile:* https://github.com/${user.login}`);
-        lines.push(`_Powered by ${getStr('botName') || 'Silva MD'} · GitHub API_`);
+        lines.push(`_Destekleyen: ${getStr('botName') || 'Alpha'} · GitHub API_`);
 
         try {
             await sock.sendMessage(jid, {

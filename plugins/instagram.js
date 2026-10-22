@@ -559,7 +559,7 @@ module.exports = [
                 ));
             }
 
-            const botName = getStr('botName') || 'Silva MD';
+            const botName = getStr('botName') || 'Alpha';
 
             const loading = await sock.sendMessage(jid, {
                 text: fmt(`⏳ _Fetching Instagram content…_`),
@@ -628,7 +628,7 @@ module.exports = [
 
             const externalAdReply = {
                 title:                 'Instagram Download',
-                body:                  `Powered by ${botName}`,
+                body:                  `Destekleyen: ${botName}`,
                 thumbnailUrl:          getStr('pic1') || 'https://files.catbox.moe/5uli5p.jpeg',
                 sourceUrl:             url,
                 mediaType:             1,

@@ -255,7 +255,7 @@ module.exports = {
                 memberList,
                 ``,
                 `Exported at: ${new Date().toLocaleString()}`,
-                `Export by  : Silva MD Bot`,
+                `Export by  : Alpha Bot`,
             ].join('\n');
 
             const tmpPath = `/tmp/groupexport_${Date.now()}.txt`;

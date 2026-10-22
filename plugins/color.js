@@ -32,7 +32,7 @@ module.exports = {
 ▸ *HSL:*   hsl(${hsl.h}°, ${hsl.s}%, ${hsl.l}%)
 ▸ *Closest:* ${data.name.closest_named_hex}
 
-_Powered by Silva MD_`,
+_Alpha tarafından_`,
                 contextInfo
             }, { quoted: message });
         } catch (e) {

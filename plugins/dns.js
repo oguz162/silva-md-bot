@@ -35,7 +35,7 @@ module.exports = {
 🌐 *NS:*        ${nsR}
 📋 *TXT:*       ${txtR}
 
-_Powered by Silva MD_`,
+_Alpha tarafından_`,
                 contextInfo
             }, { quoted: message });
         } catch (e) {

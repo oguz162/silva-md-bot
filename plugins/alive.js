@@ -10,7 +10,7 @@ const TZ = 'Africa/Nairobi';
 
 module.exports = {
     commands:    ['alive', 'bot', 'botinfo'],
-    description: 'Show bot status with full theme styling',
+    description: 'Bot durumunu gösterir',
     permission:  'public',
     group:       true,
     private:     true,
@@ -40,27 +40,27 @@ module.exports = {
         const date   = now.format('ddd, D MMM YYYY');
         const time   = now.format('hh:mm A');
 
-        const botName  = t.botName  || 'Silva MD';
-        const footer   = t.footer   || 'Silva MD';
-        const alive    = t.alive    || 'System online. All functions nominal.';
+        const botName  = t.botName  || 'Alpha';
+        const footer   = t.footer   || 'Alpha';
+        const alive    = t.alive    || 'Sistem çevrimiçi. Tüm işlevler normal.';
         const emoji    = t.aliveEmoji || '⚡';
         const modeEmoji = mode === 'PUBLIC' ? '🟢' : mode === 'PRIVATE' ? '🔒' : '🔵';
         const imageUrl = config.ALIVE_IMG || t.pic1 || 'https://files.catbox.moe/5uli5p.jpeg';
 
         const caption =
-`${emoji}  *${botName}* — is Alive!
+`${emoji}  *${botName}* — Aktif!
 
 ╭──────────────────
 │ 🤖  *Bot:*      ${botName}
-│ 👑  *Owner:*    +${owner}
-│ ⏱️  *Uptime:*   ${uptime}
-│ ⚡  *Speed:*    ${ping} ms
+│ 👑  *Sahip:*    +${owner}
+│ ⏱️  *Çalışma:* ${uptime}
+│ ⚡  *Hız:*     ${ping} ms
 │ 💾  *RAM:*      ${usedRam} / ${totalRam} GB
-│ ${modeEmoji}  *Mode:*     ${mode}
-│ 🎨  *Theme:*    ${theme}
-│ 🔑  *Prefix:*   ${prefix}
-│ 📅  *Date:*     ${date}
-│ 🕒  *Time:*     ${time}
+│ ${modeEmoji}  *Mod:*     ${mode}
+│ 🎨  *Tema:*    ${theme}
+│ 🔑  *Önek:*    ${prefix}
+│ 📅  *Tarih:*   ${date}
+│ 🕒  *Saat:*    ${time}
 ╰──────────────────
 
 ❝ ${alive} ❞

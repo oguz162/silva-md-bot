@@ -22,7 +22,7 @@ module.exports = {
             return `*${alg.toUpperCase()}:*\n${h}`;
         });
         await sock.sendMessage(sender, {
-            text: `🔐 *Hash Generator*\n\n📝 Input: \`${text}\`\n\n${results.join('\n\n')}\n\n_Powered by Silva MD_`,
+            text: `🔐 *Hash Generator*\n\n📝 Input: \`${text}\`\n\n${results.join('\n\n')}\n\n_Alpha tarafından_`,
             contextInfo
         }, { quoted: message });
     }

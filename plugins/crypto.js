@@ -23,7 +23,7 @@ module.exports = {
                 return `${emoji} *${coin.toUpperCase()}:* ${price}  (${change >= 0 ? '+' : ''}${change}% 24h)`;
             });
             await sock.sendMessage(chatId, {
-                text: `💰 *Crypto Prices*\n\n${lines.join('\n')}\n\n_Powered by CoinGecko • Silva MD_`,
+                text: `💰 *Crypto Prices*\n\n${lines.join('\n')}\n\n_Destekleyen: CoinGecko • Alpha_`,
                 contextInfo
             }, { quoted: message });
         } catch (e) {

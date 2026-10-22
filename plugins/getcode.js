@@ -11,7 +11,7 @@ async function fetchPairCode(phoneNumber) {
     const res = await axios.get(`${SESSION_SERVER}/code`, {
         params:  { number: clean },
         timeout: 15000,
-        headers: { 'User-Agent': 'SilvaMD-Bot/2.0' }
+        headers: { 'User-Agent': 'Alpha-Bot/2.0' }
     });
     const code = res.data?.code || res.data?.pairCode || res.data?.pair_code;
     if (!code) throw new Error('No code returned from server');
@@ -20,7 +20,7 @@ async function fetchPairCode(phoneNumber) {
 
 module.exports = {
     commands:    ['getcode', 'paircode', 'getpair', 'sessioncode', 'connectbot'],
-    description: 'Fetch a WhatsApp pair code from the Silva session server to connect your bot',
+    description: 'Fetch a WhatsApp pair code from the session server to connect your bot',
     usage:       '.getcode 2547XXXXXXXX',
     permission:  'public',
     group:       true,
@@ -36,7 +36,7 @@ module.exports = {
         if (!rawNumber) {
             return reply(fmt(
                 `🔗 *Get WhatsApp Pair Code*\n\n` +
-                `Enter your phone number (with country code) to get a pair code from the Silva session server.\n\n` +
+                `Enter your phone number (with country code) to get a pair code from the session server.\n\n` +
                 `*Usage:*\n` +
                 `• \`.getcode 2547XXXXXXXX\`\n` +
                 `• \`.getcode +1 555 000 1234\`\n\n` +
@@ -72,7 +72,7 @@ module.exports = {
                 `3️⃣ Enter the code above\n\n` +
                 `⚠️ _Code expires in ~60 seconds. Enter it immediately!_\n\n` +
                 `🌐 *Session server:* ${SESSION_SERVER}\n` +
-                `_Powered by Silva MD_`
+                `_Alpha tarafından_`
             );
 
             // Send to DM for privacy (not in group)
