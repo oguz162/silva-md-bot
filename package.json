@@ -1,7 +1,7 @@
 {
-  "name": "@silvaTechB/silva-md-bot",
+  "name": "alpha-bot",
   "version": "12.0.0",
-  "description": "Silva MD — A feature-rich multi-device WhatsApp bot with 1200+ commands, AI agent, 19 smart features, and anti-ban protection. Built with Node.js and Baileys.",
+  "description": "Alpha WhatsApp Botu",
   "main": "silva.js",
   "scripts": {
     "start": "node silva.js",
@@ -10,16 +10,8 @@
   "engines": {
     "node": "20.x"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/SilvaTechB/silva-md-bot.git"
-  },
-  "homepage": "https://silvatech.co.ke",
-  "bugs": {
-    "url": "https://github.com/SilvaTechB/silva-md-bot/issues"
-  },
   "keywords": [
-    "silva-md",
+    "alpha",
     "whatsapp-bot",
     "baileys",
     "multi-device",
@@ -31,12 +23,10 @@
     "anti-delete",
     "anti-ban"
   ],
-  "author": "Silva",
+  "author": "Zlose",
   "contributors": [
     {
-      "name": "SilvaTech",
-      "email": "silvatechb@gmail.com",
-      "url": "https://silvatech.co.ke"
+      "name": "Zlose"
     }
   ],
   "license": "Apache-2.0",

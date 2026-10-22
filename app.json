@@ -1,10 +1,18 @@
 {
-  "name": "silva-md",
-  "description": "Silva MD — 1200+ komut, yapay zeka ajanı, otomatik durum, silinen mesaj kurtarma, sudo sistemi ve 19 akıllı özellik sunan, zengin özellikli çoklu cihaz destekli bir WhatsApp botu. Node.js ve Baileys ile geliştirilmiştir.",
-  "keywords": ["silva-md", "whatsapp", "baileys", "bot", "multi-device", "ai", "chatbot", "whatsapp-bot", "nodejs"],
+  "name": "alpha-bot",
+  "description": "Alpha — 1200+ komut, yapay zeka ajanı, otomatik durum, silinen mesaj kurtarma, sudo sistemi ve 19 akıllı özellik sunan, zengin özellikli çoklu cihaz destekli bir WhatsApp botu. Node.js ve Baileys ile geliştirilmiştir.",
+  "keywords": [
+    "alpha",
+    "whatsapp",
+    "baileys",
+    "bot",
+    "multi-device",
+    "ai",
+    "chatbot",
+    "whatsapp-bot",
+    "nodejs"
+  ],
   "logo": "https://files.catbox.moe/5uli5p.jpeg",
-  "repository": "https://github.com/SilvaTechB/silva-md-bot",
-  "website": "https://silvatech.co.ke",
   "success_url": "/",
   "stack": "heroku-26",
   "env": {
@@ -31,12 +39,12 @@
     "BOT_NAME": {
       "description": "Menülerde ve karşılama mesajlarında gösterilen bot adı.",
       "required": false,
-      "value": "✦ Silva ✦ MD ✦"
+      "value": "Alpha"
     },
     "OWNER_NAME": {
       "description": "Bot sahibinin görünen adı.",
       "required": false,
-      "value": "Silva MD"
+      "value": "Zlose"
     },
     "THEME": {
       "description": "Bot teması/sesi. Seçenekler: silva, adam, ayanokoji, edith, friday, genos, gideon, gojo, goku, luffy, naruto, nezuko, parker, secktor, suhail, zerotwo, itachi, batman, thanos.",

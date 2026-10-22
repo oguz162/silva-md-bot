@@ -17,10 +17,10 @@
 <br>
 
 <p>
-<a href="https://github.com/SilvaTechB/silva-md-bot/stargazers"><img src="https://img.shields.io/github/stars/SilvaTechB/silva-md-bot?style=for-the-badge&logo=github&logoColor=white&labelColor=0d1117&color=FF00A6" /></a>
-<a href="https://github.com/SilvaTechB/silva-md-bot/network/members"><img src="https://img.shields.io/github/forks/SilvaTechB/silva-md-bot?style=for-the-badge&logo=git&logoColor=white&labelColor=0d1117&color=6f42c1" /></a>
-<a href="https://github.com/SilvaTechB/silva-md-bot/commits"><img src="https://img.shields.io/github/last-commit/SilvaTechB/silva-md-bot?style=for-the-badge&logo=github&logoColor=white&labelColor=0d1117&color=00d4aa" /></a>
-<a href="LICENSE"><img src="https://img.shields.io/github/license/SilvaTechB/silva-md-bot?style=for-the-badge&logo=opensourceinitiative&logoColor=white&labelColor=0d1117&color=3b82f6" /></a>
+<a href="/stargazers"><img src="https://img.shields.io/github/stars/AlphaB/silva-md-bot?style=for-the-badge&logo=github&logoColor=white&labelColor=0d1117&color=FF00A6" /></a>
+<a href="/network/members"><img src="https://img.shields.io/github/forks/AlphaB/silva-md-bot?style=for-the-badge&logo=git&logoColor=white&labelColor=0d1117&color=6f42c1" /></a>
+<a href="/commits"><img src="https://img.shields.io/github/last-commit/AlphaB/silva-md-bot?style=for-the-badge&logo=github&logoColor=white&labelColor=0d1117&color=00d4aa" /></a>
+<a href="LICENSE"><img src="https://img.shields.io/github/license/AlphaB/silva-md-bot?style=for-the-badge&logo=opensourceinitiative&logoColor=white&labelColor=0d1117&color=3b82f6" /></a>
 </p>
 
 <br>
@@ -78,7 +78,7 @@
 
 | Platform | Badge | Notes |
 |:--------:|:-----:|:------|
-| <img src="https://img.shields.io/badge/Silva%20Host-Official-FF00A6?style=flat-square&logo=server&logoColor=white" /> | [![Deploy on Silva Host](https://img.shields.io/badge/Deploy%20Now-Silva%20Host-FF00A6?style=for-the-badge&logo=icloud&logoColor=white)](https://host.silvatech.co.ke/new?template=https://github.com/SilvaTechB/silva-md-bot) | ⭐ Official · Easiest · Optimized |
+| <img src="https://img.shields.io/badge/Silva%20Host-Official-FF00A6?style=flat-square&logo=server&logoColor=white" /> | [![Deploy on Silva Host](https://img.shields.io/badge/Deploy%20Now-Silva%20Host-FF00A6?style=for-the-badge&logo=icloud&logoColor=white)]() | ⭐ Official · Easiest · Optimized |
 | <img src="https://img.shields.io/badge/Heroku-430098?style=flat-square&logo=heroku&logoColor=white" /> | [![Deploy on Heroku](https://img.shields.io/badge/Deploy%20Now-Heroku-430098?style=for-the-badge&logo=heroku&logoColor=white)](https://silva-md-fork-checker.vercel.app/) | 24/7 uptime · Auto-restart |
 | <img src="https://img.shields.io/badge/Railway-0B0D0E?style=flat-square&logo=railway&logoColor=white" /> | [![Deploy on Railway](https://img.shields.io/badge/Deploy%20Now-Railway-0B0D0E?style=for-the-badge&logo=railway&logoColor=white)](https://railway.app/new) | $5 free credits/month |
 | <img src="https://img.shields.io/badge/Koyeb-121212?style=flat-square&logo=koyeb&logoColor=white" /> | [![Deploy on Koyeb](https://img.shields.io/badge/Deploy%20Now-Koyeb-121212?style=for-the-badge&logo=koyeb&logoColor=white)](https://app.koyeb.com) | Free tier · No cold-starts |
@@ -97,7 +97,7 @@
 
 | Step | Action |
 |:----:|--------|
-| **1** | Click **Deploy Now** → [host.silvatech.co.ke](https://host.silvatech.co.ke/new?template=https://github.com/SilvaTechB/silva-md-bot) |
+| **1** | Click **Deploy Now** → [host.silvatech.co.ke]() |
 | **2** | Log in or create a Silva Host account |
 | **3** | Fill in `SESSION_ID`, `OWNER_NUMBER`, `BOT_NAME` |
 | **4** | Click **Deploy** — bot goes live in seconds ✅ |
@@ -111,7 +111,7 @@
 
 | Step | Action |
 |:----:|--------|
-| **1** | [Fork the repo](https://github.com/SilvaTechB/silva-md-bot/fork) to your GitHub |
+| **1** | [Fork the repo](/fork) to your GitHub |
 | **2** | Open [silva-md-fork-checker.vercel.app](https://silva-md-fork-checker.vercel.app/) → click **Deploy to Heroku** |
 | **3** | Fill in `SESSION_ID`, `OWNER_NUMBER`, `BOT_NAME` |
 | **4** | Click **Deploy App** — wait ~2 minutes |
@@ -126,7 +126,7 @@
 
 | Step | Action |
 |:----:|--------|
-| **1** | [Fork the repo](https://github.com/SilvaTechB/silva-md-bot/fork) to your GitHub |
+| **1** | [Fork the repo](/fork) to your GitHub |
 | **2** | Go to [railway.app](https://railway.app) → **New Project → Deploy from GitHub** |
 | **3** | Select your forked repo |
 | **4** | Open **Variables** tab → add `SESSION_ID`, `OWNER_NUMBER`, `BOT_NAME` |
@@ -141,7 +141,7 @@
 
 | Step | Action |
 |:----:|--------|
-| **1** | [Fork the repo](https://github.com/SilvaTechB/silva-md-bot/fork) to your GitHub |
+| **1** | [Fork the repo](/fork) to your GitHub |
 | **2** | Go to [app.koyeb.com](https://app.koyeb.com) → **Create App → GitHub** |
 | **3** | Select your fork · Set **Run command** to `node silva.js` |
 | **4** | Add `SESSION_ID`, `OWNER_NUMBER`, `BOT_NAME` under **Environment Variables** |
@@ -186,7 +186,7 @@
 
 ```bash
 # Clone & Install
-git clone https://github.com/SilvaTechB/silva-md-bot.git
+git clone 
 cd silva-md-bot
 npm install
 
@@ -219,7 +219,7 @@ pm2 save && pm2 startup
 |----------|:-------:|-------------|
 | `SESSION_ID` | **required** | Your WhatsApp session (from session generator) |
 | `OWNER_NUMBER` | auto | Your WhatsApp number with country code e.g. `254712345678` |
-| `BOT_NAME` | `Silva MD` | Bot display name |
+| `BOT_NAME` | `Alpha` | Bot display name |
 | `PREFIX` | `.` | Command prefix (`.` `,` `!` `/` or comma-separated) |
 | `MODE` | `public` | `public` · `private` · `group` · `inbox` |
 | `THEME` | `silva` | Bot personality — see [Themes](#-themes) |
@@ -382,7 +382,7 @@ pm2 save && pm2 startup
 
 | Theme | Character | Vibe |
 |:-----:|-----------|------|
-| `silva` | 🤖 Silva MD | Default — clean & professional |
+| `silva` | 🤖 Alpha | Default — clean & professional |
 | `naruto` | 🍥 Naruto Uzumaki | Energetic, never give up |
 | `gojo` | ⬜ Satoru Gojo | Confident, Jujutsu Kaisen |
 | `itachi` | 🌙 Itachi Uchiha | Calm and powerful |
@@ -408,10 +408,10 @@ pm2 save && pm2 startup
 
 <br>
 
-[![WhatsApp Channel](https://img.shields.io/badge/WhatsApp%20Channel-Follow%20Us-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://whatsapp.com/channel/0029VaAkETLLY6d8qhLmZt2v)
-[![Support Group](https://img.shields.io/badge/Support%20Group-Join%20Now-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)](https://chat.whatsapp.com/Ik0YpP0dM8jHVjScf1Ay5S)
-[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram&logoColor=white)](https://instagram.com/_its.silva)
-[![Twitter/X](https://img.shields.io/badge/X%20(Twitter)-Follow-000000?style=for-the-badge&logo=x&logoColor=white)](https://x.com/silva_african)
+[![WhatsApp Channel](https://img.shields.io/badge/WhatsApp%20Channel-Follow%20Us-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)]()
+[![Support Group](https://img.shields.io/badge/Support%20Group-Join%20Now-25D366?style=for-the-badge&logo=whatsapp&logoColor=white)]()
+[![Instagram](https://img.shields.io/badge/Instagram-Follow-E4405F?style=for-the-badge&logo=instagram&logoColor=white)]()
+[![Twitter/X](https://img.shields.io/badge/X%20(Twitter)-Follow-000000?style=for-the-badge&logo=x&logoColor=white)]()
 
 <br>
 
@@ -426,8 +426,8 @@ pm2 save && pm2 startup
 <table>
   <tr>
     <td align="center">
-      <a href="https://github.com/SilvaTechB">
-        <img src="https://github.com/SilvaTechB.png?size=100" width="90" style="border-radius:50%"/><br>
+      <a href="https://github.com/AlphaB">
+        <img src="https://github.com/AlphaB.png?size=100" width="90" style="border-radius:50%"/><br>
         <b>Silva</b><br>
         <sub>Creator & Lead Dev</sub>
       </a>
@@ -450,9 +450,9 @@ pm2 save && pm2 startup
 
 <div align="center">
 
-[![Forkers](https://reporoster.com/forks/SilvaTechB/silva-md-bot)](https://github.com/SilvaTechB/silva-md-bot/network/members)
+[![Forkers](https://reporoster.com/forks/AlphaB/silva-md-bot)](/network/members)
 
-[![Stargazers](https://reporoster.com/stars/SilvaTechB/silva-md-bot)](https://github.com/SilvaTechB/silva-md-bot/stargazers)
+[![Stargazers](https://reporoster.com/stars/AlphaB/silva-md-bot)](/stargazers)
 
 </div>
 
@@ -462,8 +462,8 @@ pm2 save && pm2 startup
 
 <img src="https://capsule-render.vercel.app/api?type=waving&color=gradient&customColorList=6,11,20&height=120&section=footer&text=Silva%20Tech%20Inc&fontSize=28&fontColor=fff&animation=twinkling" width="100%"/>
 
-**Built with purpose by [Silva Tech Inc](https://github.com/SilvaTechB)**
+**Built with purpose by [Alpha](https://github.com/AlphaB)**
 
-`Silva MD Bot — 1500+ commands. One scan. Unlimited possibilities.`
+`Alpha Bot — 1500+ commands. One scan. Unlimited possibilities.`
 
 </div>

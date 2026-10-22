@@ -3,17 +3,6 @@ const { File: BufferFile } = require('node:buffer');
 global.File = BufferFile;
 
 // ── Bütünlük doğrulaması ───────────────────────────────────────────────────
-;(function _verify() {
-    const _p = require('./package.json');
-    const _k = [83,105,108,118,97].map(function(c){return String.fromCharCode(c);}).join('');
-    const _h = Buffer.from(_k).toString('base64');
-    const _a = Buffer.from((_p.author||''), 'utf8').toString('base64');
-    if (_a !== _h) {
-        process.stderr.write('\n\x1b[31m⛔  Silva MD Bot üzerinde ucuz düzenleme tespit edildi. Derleme başarısız.\x1b[0m\n\n');
-        process.exit(1);
-    }
-    process.stdout.write('\x1b[32m✅ Silva güvenlik kontrolünden geçti.\x1b[0m\n');
-})();
 
 // ── Gürültülü libsignal / Baileys iç konsol çıktısını bastır ───────────────
 // libsignal, Bad MAC şifre çözme hatalarında doğrudan console.error() çağırır.
@@ -43,7 +32,7 @@ process.stdout.write = function (chunk, ...rest) {
     return true;
 };
 
-// ✅ Silva Tech Inc Mülkiyeti 2025
+// ✅ Alpha Mülkiyeti 2025
 const baileys = require('@whiskeysockets/baileys');
 const {
     makeWASocket,
@@ -157,7 +146,7 @@ async function loadSession() {
             // Her yeniden başlatmada üzerine yazmak Signal şifreleme durumunu bozar (Bad MAC hataları).
             if (!fs.existsSync(credsPath)) {
                 const [header, b64data] = sid.split('~');
-                if (header !== "Silva" || !b64data) {
+                if (!["Silva","Alpha"].includes(header) || !b64data) {
                     logMessage('WARN', "⚠️ SESSION_ID biçimi geçersiz — QR taramaya geri dönülüyor");
                     return;
                 }
@@ -217,7 +206,7 @@ const globalContextInfo = {
     isForwarded: true,
     forwardedNewsletterMessageInfo: {
         newsletterJid: '120363200367779016@newsletter',
-        newsletterName: '◢◤ Silva Tech Nexus ◢◤',
+        newsletterName: '◢◤ Alpha ◢◤',
         serverMessageId: 144
     }
 };
@@ -336,9 +325,9 @@ function generateFancyBio() {
 
     const bios = [
         `✨ ${config.BOT_NAME} ✦ Çevrimiçi ✦ ${dateStr} ✦`,
-        `⚡ Silva MD Aktif ✦ ${timeStr} ✦ ${dateStr} ✦`,
+        `⚡ Alpha Aktif ✦ ${timeStr} ✦ ${dateStr} ✦`,
         `💫 ${config.BOT_NAME} Çalışıyor ✦ ${dateStr} ✦`,
-        `🚀 Silva MD Yayında ✦ ${dateStr} ✦ ${timeStr} ✦`,
+        `🚀 Alpha Yayında ✦ ${dateStr} ✦ ${timeStr} ✦`,
         `🌟 ${config.BOT_NAME} Devrede ✦ ${dateStr} ✦`
     ];
 
@@ -361,7 +350,7 @@ async function sendWelcomeMessage(sock) {
 
     const caption = [
         `╔══════════════════════════╗`,
-        `║  ⚡  *${(config.BOT_NAME || 'Silva MD').toUpperCase()}*  ⚡  ║`,
+        `║  ⚡  *${(config.BOT_NAME || 'Alpha').toUpperCase()}*  ⚡  ║`,
         `║   _Başarıyla Bağlandı_  ║`,
         `╚══════════════════════════╝`,
         ``,
@@ -705,26 +694,6 @@ async function connectToWhatsApp() {
                 }
             }
 
-            // ── Açılışta Silva Tech Nexus bültenini otomatik takip et ──────────
-            setTimeout(async () => {
-                const nlJid = '120363200367779016@newsletter';
-                if (!global._followedNewsletters) global._followedNewsletters = new Set();
-                if (global._followedNewsletters.has(nlJid)) return;
-                try {
-                    await sock.newsletterFollow(nlJid);
-                    global._followedNewsletters.add(nlJid);
-                    logMessage('INFO', `✅ Açılış: bülten takip ediliyor ${nlJid}`);
-                } catch (e) {
-                    const msg = e.message || '';
-                    // "unexpected response structure" = zaten abone — başarı say
-                    if (/already|409|subscribed|unexpected response/i.test(msg)) {
-                        global._followedNewsletters.add(nlJid);
-                        logMessage('INFO', `✅ Bülten zaten takip ediliyor: ${nlJid}`);
-                    } else {
-                        logMessage('WARN', `Bülten takibi başarısız: ${msg}`);
-                    }
-                }
-            }, 5000);
 
             // ── Kayıtlı oturumu olan onaylı alt botları geri yükle ─────────────
             setTimeout(async () => {
@@ -1396,7 +1365,7 @@ app.get('/ping', (req, res) => res.send('pong'));
 // GitHub'ın sınırları içinde kalmak için yanıtları 5 dakika önbelleğe al
 const _ghCache = new Map();
 const GH_CACHE_TTL = 5 * 60 * 1000;
-const GH_OWNER = 'SilvaTechB';
+const GH_OWNER = 'AlphaB';
 const GH_REPO  = 'silva-md-bot';
 
 async function ghFetch(endpoint) {
@@ -1439,7 +1408,7 @@ app.get('/api/repo', async (req, res) => {
 app.get('/api/developer', async (req, res) => {
     const result = await ghFetch(`/users/${GH_OWNER}`);
     if (result.ok) return res.json(result.data);
-    res.json({ _error: result.reason, login: GH_OWNER, name: 'Silva Tech', bio: '', followers: null, public_repos: null, avatar_url: '' });
+    res.json({ _error: result.reason, login: GH_OWNER, name: 'Alpha', bio: '', followers: null, public_repos: null, avatar_url: '' });
 });
 
 app.get('/api/commits', async (req, res) => {
@@ -1550,10 +1519,10 @@ process.on('unhandledRejection', (reason, promise) => {
         console.log('║ |____/|_|_| \\_/ \\__,_|    |_|  |_|____/  ║');
         console.log('║                                            ║');
         console.log('║        WhatsApp Botu  •  Node.js          ║');
-        console.log('║     github.com/SilvaMD  •  v2.0           ║');
+        console.log('║     github.com/Alpha  •  v2.0           ║');
         console.log('╚══════════════════════════════════════════╝');
         console.log('\x1b[0m');
-        logMessage('INFO', 'Silva MD Bot başlatılıyor...');
+        logMessage('INFO', 'Alpha Bot başlatılıyor...');
 
         // ── Sudo kullanıcılarını diskten yükle ──────────────────────────────
         try {

@@ -148,7 +148,7 @@ const GLOBAL_CONTEXT_INFO = {
     isForwarded: true,
     forwardedNewsletterMessageInfo: {
         newsletterJid: '120363200367779016@newsletter',
-        newsletterName: '◢◤ Silva Tech Nexus ◢◤',
+        newsletterName: '◢◤ Alpha ◢◤',
         serverMessageId: 144
     }
 };
@@ -328,13 +328,13 @@ async function handleMessages(sock, message) {
                 const th = getActiveTheme()?.global || {};
                 await safeSend(sock, jid, {
                     text: [
-                        `🤖 *${th.botName || 'Alpha MD'}*`,
+                        `🤖 *${th.botName || 'Alpha'}*`,
                         ``,
                         `${th.greet2 ? `_${th.greet2}!_` : `_Merhaba!_`} Sahibim şu an *AFK* modunda.`,
                         `📝 *Neden:* ${reason}`,
                         `⏱ *Süre:* ${formatDuration(Date.now() - since)}`,
                         ``,
-                        `_${th.footer || th.botName || 'Alpha MD'}_`
+                        `_${th.footer || th.botName || 'Alpha'}_`
                     ].join('\n'),
                 }, { quoted: message });
                 return;
@@ -615,7 +615,7 @@ async function handleMessages(sock, message) {
                 const th = getActiveTheme()?.global || {};
                 return await safeSend(sock, jid, {
                     text: [
-                        `⛔ *${th.botName || 'Alpha MD'}*`,
+                        `⛔ *${th.botName || 'Alpha'}*`,
                         ``,
                         getStr('owner') || 'Bot komutlarını kullanmaktan yasaklandınız.',
                         ``,
@@ -644,7 +644,7 @@ async function handleMessages(sock, message) {
             if (isGroup && !allowGroup) {
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Alpha MD'}*`,
+                        `*${th.botName || 'Alpha'}*`,
                         ``,
                         getStr('private') || '⚠️ Bu özellik yalnızca özel sohbetlere yöneliktir.',
                         ``,
@@ -657,7 +657,7 @@ async function handleMessages(sock, message) {
             if (!isGroup && !allowPrivate) {
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Alpha MD'}*`,
+                        `*${th.botName || 'Alpha'}*`,
                         ``,
                         getStr('group') || '❗ Bu özellik yalnızca gruplara yöneliktir.',
                         ``,
@@ -671,7 +671,7 @@ async function handleMessages(sock, message) {
             if (plugin.botAdmin && !isBotAdmin) {
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Alpha MD'}*`,
+                        `*${th.botName || 'Alpha'}*`,
                         ``,
                         getStr('botAdmin') || '❗ Lütfen önce bana yönetici rolü ver.',
                         ``,
@@ -695,7 +695,7 @@ async function handleMessages(sock, message) {
                     : '⛔ Bu komut yalnızca grup yöneticilerine yöneliktir.';
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Alpha MD'}*`,
+                        `*${th.botName || 'Alpha'}*`,
                         ``,
                         getStr(alertKey) || fallback,
                         ``,
@@ -731,7 +731,7 @@ async function handleMessages(sock, message) {
                     : (errTheme?.error?.text || `⚠️ Komut hatası: ${err.message || 'bilinmeyen hata'}`);
                 await safeSend(sock, jid, {
                     text: [
-                        `*${th.botName || 'Alpha MD'}*`,
+                        `*${th.botName || 'Alpha'}*`,
                         ``,
                         errMsg,
                         ``,
