@@ -1,32 +1,32 @@
-// silva.js — Updated with fixes for group functionality and error handling
+// silva.js — Grup işlevi ve hata yönetimi düzeltmeleriyle güncellendi
 const { File: BufferFile } = require('node:buffer');
 global.File = BufferFile;
 
-// ── Integrity verification ─────────────────────────────────────────────────
+// ── Bütünlük doğrulaması ───────────────────────────────────────────────────
 ;(function _verify() {
     const _p = require('./package.json');
     const _k = [83,105,108,118,97].map(function(c){return String.fromCharCode(c);}).join('');
     const _h = Buffer.from(_k).toString('base64');
     const _a = Buffer.from((_p.author||''), 'utf8').toString('base64');
     if (_a !== _h) {
-        process.stderr.write('\n\x1b[31m⛔  Cheap editing of Silva MD Bot detected. Build failed.\x1b[0m\n\n');
+        process.stderr.write('\n\x1b[31m⛔  Silva MD Bot üzerinde ucuz düzenleme tespit edildi. Derleme başarısız.\x1b[0m\n\n');
         process.exit(1);
     }
-    process.stdout.write('\x1b[32m✅ Passed the Silva security check.\x1b[0m\n');
+    process.stdout.write('\x1b[32m✅ Silva güvenlik kontrolünden geçti.\x1b[0m\n');
 })();
 
-// ── Suppress noisy libsignal / Baileys internal console output ─────────────
-// libsignal calls console.error() directly on Bad MAC decryption failures.
-// libsignal also console.log()s raw SessionEntry objects during retry floods.
-// Neither is fatal — we filter them so only bot-level messages appear in logs.
+// ── Gürültülü libsignal / Baileys iç konsol çıktısını bastır ───────────────
+// libsignal, Bad MAC şifre çözme hatalarında doğrudan console.error() çağırır.
+// libsignal ayrıca yeniden deneme sağanaklarında ham SessionEntry nesnelerini console.log()'lar.
+// İkisi de ölümcül değil — logda yalnızca bot düzeyindeki mesajlar kalsın diye filtreliyoruz.
 const _origConsoleError = console.error.bind(console);
 console.error = (...args) => {
     const msg = args.map(a => (typeof a === 'string' ? a : (a?.message || String(a)))).join(' ');
     if (/bad mac|failed to decrypt|session error/i.test(msg)) return;
     _origConsoleError(...args);
 };
-// Also filter stdout to catch libsignal session dumps that bypass console.log
-// (libsignal may capture console.log by reference before our override)
+// console.log'u referansla yakalamış olabilecek libsignal oturum dökümlerini
+// yakalamak için stdout'u da filtrele
 const _origStdoutWrite = process.stdout.write.bind(process.stdout);
 let _stdoutBuf = '';
 process.stdout.write = function (chunk, ...rest) {
@@ -43,7 +43,7 @@ process.stdout.write = function (chunk, ...rest) {
     return true;
 };
 
-// ✅ Silva Tech Inc Property 2025
+// ✅ Silva Tech Inc Mülkiyeti 2025
 const baileys = require('@whiskeysockets/baileys');
 const {
     makeWASocket,
@@ -61,9 +61,9 @@ const {
     generateMessageIDV2
 } = baileys;
 
-// Minimal in-memory message store (makeInMemoryStore was removed in gifted-baileys)
+// Minimal bellek içi mesaj deposu (makeInMemoryStore gifted-baileys'te kaldırıldı)
 function makeInMemoryStore() {
-    const messages = new Map(); // jid -> Map(id -> message)
+    const messages = new Map(); // jid -> Map(id -> mesaj)
     const MAX_PER_JID = 200;
     return {
         bind(ev) {
@@ -90,7 +90,7 @@ function makeInMemoryStore() {
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
-const zlib = require('zlib'); // Added for session decompression
+const zlib = require('zlib'); // Oturum açma (decompress) için eklendi
 const express = require('express');
 const P = require('pino');
 const { handleMessages } = require('./handler');
@@ -102,21 +102,21 @@ const config = require('./config.js');
 if (typeof global.antivvEnabled === 'undefined') global.antivvEnabled = config.ANTIVV !== false;
 const store = makeInMemoryStore({ logger: P({ level: 'silent' }) });
 
-// ── Reconnect state — module-level so it persists across connectToWhatsApp() calls ──
-let _reconnectCount   = 0;   // how many consecutive failed reconnect attempts
-let _isReconnecting   = false; // guard: only one reconnect in flight at a time
-let _keepAliveTimer   = null;  // handle for the keep-alive presence interval
+// ── Yeniden bağlanma durumu — connectToWhatsApp() çağrıları arasında kalıcı olması için modül seviyesinde ──
+let _reconnectCount   = 0;   // art arda başarısız yeniden bağlanma denemesi sayısı
+let _isReconnecting   = false; // koruma: aynı anda yalnızca bir yeniden bağlanma
+let _keepAliveTimer   = null;  // canlı tutma presence aralığının tutamacı
 
 function _scheduleReconnect(fn) {
     if (_isReconnecting) {
-        logMessage('DEBUG', '[Reconnect] Skipped — reconnect already in progress');
+        logMessage('DEBUG', '[Reconnect] Atlandı — yeniden bağlanma zaten sürüyor');
         return;
     }
     _isReconnecting = true;
     _reconnectCount++;
-    // Exponential backoff: 3s → 6s → 12s → 24s → ... capped at 5 minutes
+    // Üstel geri çekilme: 3sn → 6sn → 12sn → 24sn → ... en fazla 5 dakika
     const delay = Math.min(3000 * Math.pow(2, _reconnectCount - 1), 5 * 60 * 1000);
-    logMessage('INFO', `[Reconnect] Attempt #${_reconnectCount} in ${Math.round(delay / 1000)}s`);
+    logMessage('INFO', `[Reconnect] ${Math.round(delay / 1000)}sn sonra #${_reconnectCount}. deneme`);
     setTimeout(() => {
         _isReconnecting = false;
         fn();
@@ -133,11 +133,11 @@ const tempDir = path.join(os.tmpdir(), 'silva-cache');
 const port = process.env.PORT || 25680;
 const pluginsDir = path.join(__dirname, 'plugins');
 
-// ✅ Session paths
+// ✅ Oturum yolları
 const sessionDir = path.join(__dirname, 'session');
 const credsPath = path.join(sessionDir, 'creds.json');
 
-// ✅ Create session directory if not exists
+// ✅ Oturum klasörü yoksa oluştur
 function createDirIfNotExist(dir) {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
@@ -145,20 +145,20 @@ function createDirIfNotExist(dir) {
 }
 createDirIfNotExist(sessionDir);
 
-// ✅ Load session from compressed base64 (or reuse existing session on disk)
+// ✅ Oturumu sıkıştırılmış base64'ten yükle (veya diskteki mevcut oturumu kullan)
 async function loadSession() {
     try {
         const sid = (config.SESSION_ID || '').trim();
         const hasTilde = sid.includes('~');
 
         if (sid && hasTilde) {
-            // SESSION_ID is provided in Silva~<b64> format.
-            // Only restore from SESSION_ID if creds.json is missing.
-            // Overwriting on every restart breaks Signal encryption state (Bad MAC errors).
+            // SESSION_ID Silva~<b64> biçiminde verilmiş.
+            // Yalnızca creds.json yoksa SESSION_ID'den geri yükle.
+            // Her yeniden başlatmada üzerine yazmak Signal şifreleme durumunu bozar (Bad MAC hataları).
             if (!fs.existsSync(credsPath)) {
                 const [header, b64data] = sid.split('~');
                 if (header !== "Silva" || !b64data) {
-                    logMessage('WARN', "⚠️ SESSION_ID format invalid — falling back to QR scan");
+                    logMessage('WARN', "⚠️ SESSION_ID biçimi geçersiz — QR taramaya geri dönülüyor");
                     return;
                 }
 
@@ -166,30 +166,30 @@ async function loadSession() {
                 const compressedData = Buffer.from(cleanB64, 'base64');
                 const decompressedData = zlib.gunzipSync(compressedData);
                 fs.writeFileSync(credsPath, decompressedData, "utf8");
-                logMessage('SUCCESS', "✅ ɴᴇᴡ ꜱᴇꜱꜱɪᴏɴ ʟᴏᴀᴅᴇᴅ ꜱᴜᴄᴄᴇꜱꜱꜰᴜʟʟʏ");
+                logMessage('SUCCESS', "✅ Yeni oturum başarıyla yüklendi");
             } else {
-                logMessage('INFO', "📂 Using existing session from disk");
+                logMessage('INFO', "📂 Diskteki mevcut oturum kullanılıyor");
             }
 
         } else if (fs.existsSync(credsPath)) {
-            // No SESSION_ID — reuse the session already on disk (Replit / local mode)
-            logMessage('INFO', "📂 Using existing session from disk");
+            // SESSION_ID yok — diskteki oturumu kullan (Replit / yerel mod)
+            logMessage('INFO', "📂 Diskteki mevcut oturum kullanılıyor");
 
         } else {
-            // No session at all — Baileys will generate a QR code to scan
-            logMessage('WARN', "⚠️ No session found — scan the QR code to connect");
+            // Hiç oturum yok — Baileys taranacak bir QR kodu üretecek
+            logMessage('WARN', "⚠️ Oturum bulunamadı — bağlanmak için QR kodu tarayın");
         }
 
     } catch (e) {
-        logMessage('ERROR', `Session Error: ${e.message}`);
-        logMessage('WARN', "⚠️ Session load failed — attempting QR fallback");
+        logMessage('ERROR', `Oturum Hatası: ${e.message}`);
+        logMessage('WARN', "⚠️ Oturum yüklenemedi — QR yedeği deneniyor");
     }
 }
 
-// ✅ Message Cache for Anti-Delete
+// ✅ Anti-Delete için mesaj önbelleği
 const messageCache = new Map();
 
-// ✅ Message Logger Setup
+// ✅ Mesaj kaydedici kurulumu
 const logDir = path.join(__dirname, 'logs');
 if (!fs.existsSync(logDir)) fs.mkdirSync(logDir);
 
@@ -208,7 +208,7 @@ function logMessage(type, message) {
     try {
         fs.appendFileSync(logFile, logEntry);
     } catch (e) {
-        console.error('Failed writing log:', e.message);
+        console.error('Log yazılamadı:', e.message);
     }
 }
 
@@ -222,7 +222,7 @@ const globalContextInfo = {
     }
 };
 
-// ✅ Safe Get User JID
+// ✅ Kullanıcı JID'ini güvenli al
 function safeGetUserJid(sock) {
     try {
         return sock.user?.id || null;
@@ -231,15 +231,15 @@ function safeGetUserJid(sock) {
     }
 }
 
-// ✅ Ensure Temp Directory Exists
+// ✅ Geçici klasörün var olduğundan emin ol
 if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
 setInterval(() => {
     try {
         fs.readdirSync(tempDir).forEach(file => fs.unlinkSync(path.join(tempDir, file)));
-    } catch (e) { /* ignore */ }
+    } catch (e) { /* yoksay */ }
 }, 5 * 60 * 1000);
 
-// ✅ Load Plugins
+// ✅ Eklentileri yükle
 let plugins = new Map();
 function loadPlugins() {
     if (!fs.existsSync(pluginsDir)) fs.mkdirSync(pluginsDir);
@@ -251,7 +251,7 @@ function loadPlugins() {
             const plugin = require(path.join(pluginsDir, file));
             plugins.set(file.replace('.js', ''), plugin);
         } catch (err) {
-            logMessage('ERROR', `Failed loading plugin ${file}: ${err.message}`);
+            logMessage('ERROR', `Eklenti yüklenemedi ${file}: ${err.message}`);
         }
     }
     let totalCmds = 0;
@@ -261,11 +261,11 @@ function loadPlugins() {
             if (m && m.commands) totalCmds += m.commands.length;
         }
     }
-    logMessage('INFO', `✅ Loaded ${plugins.size} plugin files (${totalCmds} commands)`);
+    logMessage('INFO', `✅ ${plugins.size} eklenti dosyası yüklendi (${totalCmds} komut)`);
 }
 loadPlugins();
 
-// ✅ Utility helpers
+// ✅ Yardımcı fonksiyonlar
 async function downloadAsBuffer(messageObj, typeHint = 'file') {
     try {
         const stream = await downloadContentFromMessage(messageObj, typeHint);
@@ -273,7 +273,7 @@ async function downloadAsBuffer(messageObj, typeHint = 'file') {
         for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
         return buffer;
     } catch (err) {
-        logMessage('ERROR', `downloadAsBuffer error: ${err.message}`);
+        logMessage('ERROR', `downloadAsBuffer hatası: ${err.message}`);
         return null;
     }
 }
@@ -289,7 +289,7 @@ function isBotMentioned(message, botJid) {
     }
 }
 
-// ✅ Generate Config Table
+// ✅ Yapılandırma tablosu oluştur
 function generateConfigTable() {
     const configs = [
         { name: 'MODE', value: config.MODE },
@@ -305,7 +305,7 @@ function generateConfigTable() {
     ];
 
     let table = '╔══════════════════════════╦═══════════╗\n';
-    table += '║        Config Name       ║   Value   ║\n';
+    table += '║        Ayar Adı          ║   Değer   ║\n';
     table += '╠══════════════════════════╬═══════════╣\n';
 
     for (const c of configs) {
@@ -318,7 +318,7 @@ function generateConfigTable() {
     return table;
 }
 
-// ✅ Fancy Bio Generator
+// ✅ Şık biyografi üretici
 function generateFancyBio() {
     const now = new Date();
     const dateStr = now.toLocaleDateString('en-KE', {
@@ -335,24 +335,24 @@ function generateFancyBio() {
     });
 
     const bios = [
-        `✨ ${config.BOT_NAME} ✦ Online ✦ ${dateStr} ✦`,
-        `⚡ Silva MD Active ✦ ${timeStr} ✦ ${dateStr} ✦`,
-        `💫 ${config.BOT_NAME} Operational ✦ ${dateStr} ✦`,
-        `🚀 Silva MD Live ✦ ${dateStr} ✦ ${timeStr} ✦`,
-        `🌟 ${config.BOT_NAME} Running ✦ ${dateStr} ✦`
+        `✨ ${config.BOT_NAME} ✦ Çevrimiçi ✦ ${dateStr} ✦`,
+        `⚡ Silva MD Aktif ✦ ${timeStr} ✦ ${dateStr} ✦`,
+        `💫 ${config.BOT_NAME} Çalışıyor ✦ ${dateStr} ✦`,
+        `🚀 Silva MD Yayında ✦ ${dateStr} ✦ ${timeStr} ✦`,
+        `🌟 ${config.BOT_NAME} Devrede ✦ ${dateStr} ✦`
     ];
 
     return bios[Math.floor(Math.random() * bios.length)];
 }
 
-// ✅ Welcome Message
+// ✅ Karşılama mesajı
 async function sendWelcomeMessage(sock) {
     const now = new Date().toLocaleString('en-US', {
         weekday: 'long', month: 'long', day: 'numeric',
         hour: '2-digit', minute: '2-digit', timeZone: 'Africa/Nairobi'
     });
 
-    // Count total commands across all plugins
+    // Tüm eklentilerdeki toplam komut sayısı
     let totalCmds = 0;
     for (const [, p] of plugins) {
         const ms = Array.isArray(p) ? p : [p];
@@ -362,23 +362,23 @@ async function sendWelcomeMessage(sock) {
     const caption = [
         `╔══════════════════════════╗`,
         `║  ⚡  *${(config.BOT_NAME || 'Silva MD').toUpperCase()}*  ⚡  ║`,
-        `║   _Successfully Connected_  ║`,
+        `║   _Başarıyla Bağlandı_  ║`,
         `╚══════════════════════════╝`,
         ``,
         `╭─────────────────────────`,
-        `│ 🟢  *Status:*    Online & Ready`,
-        `│ 🔑  *Prefix:*    \`${prefix}\``,
-        `│ 📦  *Plugins:*   ${plugins.size} files`,
-        `│ ⚙️  *Commands:*  ${totalCmds}`,
-        `│ 🔒  *Mode:*      ${(config.MODE || 'public').toUpperCase()}`,
-        `│ 🕒  *Time:*      ${now}`,
+        `│ 🟢  *Durum:*     Çevrimiçi ve Hazır`,
+        `│ 🔑  *Önek:*      \`${prefix}\``,
+        `│ 📦  *Eklentiler:* ${plugins.size} dosya`,
+        `│ ⚙️  *Komutlar:*  ${totalCmds}`,
+        `│ 🔒  *Mod:*       ${(config.MODE || 'public').toUpperCase()}`,
+        `│ 🕒  *Zaman:*     ${now}`,
         `╰─────────────────────────`,
         ``,
-        `> Type \`${prefix}menu\` to explore all commands`,
-        `> Type \`${prefix}alive\` to check bot status`
+        `> Tüm komutları görmek için \`${prefix}menu\` yazın`,
+        `> Bot durumunu kontrol etmek için \`${prefix}alive\` yazın`
     ].join('\n');
 
-    // Load bot icon (local file preferred, URL fallback)
+    // Bot simgesini yükle (yerel dosya öncelikli, URL yedek)
     const iconPath = path.join(__dirname, 'data', 'silvamdboticon.png');
     const iconBuffer = fs.existsSync(iconPath) ? fs.readFileSync(iconPath) : null;
 
@@ -395,29 +395,29 @@ async function sendWelcomeMessage(sock) {
         } else {
             await sock.sendMessage(ownerJid, { text: caption, contextInfo: globalContextInfo });
         }
-        logMessage('SUCCESS', 'Welcome message sent to owner.');
+        logMessage('SUCCESS', 'Karşılama mesajı sahibe gönderildi.');
     } catch (e) {
-        logMessage('WARN', `Welcome message failed: ${e.message}`);
+        logMessage('WARN', `Karşılama mesajı başarısız: ${e.message}`);
     }
 
 }
 
-// ✅ Update Profile Status
+// ✅ Profil durumunu güncelle
 async function updateProfileStatus(sock) {
     try {
         const bio = generateFancyBio();
         await sock.updateProfileStatus(bio);
-        logMessage('SUCCESS', `✅ Bio updated: ${bio}`);
+        logMessage('SUCCESS', `✅ Biyografi güncellendi: ${bio}`);
     } catch (err) {
         if (/rate.?overlimit|rate.?limit|too.?many/i.test(err.message || '')) {
-            logMessage('WARN', `Bio update skipped — rate limited, will retry on next connect`);
+            logMessage('WARN', `Biyografi güncellemesi atlandı — istek sınırı, sonraki bağlantıda yeniden denenecek`);
         } else {
-            logMessage('WARN', `Bio update failed: ${err.message}`);
+            logMessage('WARN', `Biyografi güncellenemedi: ${err.message}`);
         }
     }
 }
 
-// ✅ Connect to WhatsApp (main)
+// ✅ WhatsApp'a bağlan (ana)
 async function connectToWhatsApp() {
     const seenStatusIds = new Set();
     const seenCmdIds = new Set();
@@ -427,32 +427,32 @@ async function connectToWhatsApp() {
         if (seenStatusIds.size > 5000) seenStatusIds.clear();
     }, 10 * 60 * 1000);
 
-    // Use the session directory for multi-file auth state
+    // Çoklu dosya kimlik doğrulama durumu için oturum klasörünü kullan
     const { state, saveCreds } = await useMultiFileAuthState(sessionDir);
 
-    // gifted-baileys' version fetch URL is broken (404). Fetch from the upstream
-    // WhiskeySockets/Baileys repo directly; fall back to a pinned known-good version.
+    // gifted-baileys'in sürüm alma URL'si bozuk (404). Doğrudan upstream
+    // WhiskeySockets/Baileys deposundan al; olmazsa bilinen çalışan sabit sürüme dön.
     let version = [2, 3000, 1035194821];
     try {
         const { version: fetched, isLatest } = await fetchLatestBaileysVersion();
         if (fetched && fetched.length === 3) {
             version = fetched;
-            logMessage('INFO', `WA version: ${version.join('.')} (latest: ${isLatest})`);
+            logMessage('INFO', `WA sürümü: ${version.join('.')} (en güncel: ${isLatest})`);
         }
-    } catch (e) { /* ignore — use pinned version */ }
-    // Always try the upstream source as the authoritative version
+    } catch (e) { /* yoksay — sabit sürümü kullan */ }
+    // Yetkili kaynak olarak her zaman upstream'i dene
     try {
         const _https = require('https');
         await new Promise((resolve) => {
             _https.get('https://raw.githubusercontent.com/WhiskeySockets/Baileys/master/src/Defaults/baileys-version.json', (r) => {
                 let d = ''; r.on('data', c => d += c);
                 r.on('end', () => {
-                    try { const parsed = JSON.parse(d); if (Array.isArray(parsed.version)) { version = parsed.version; logMessage('INFO', `WA version (upstream): ${version.join('.')}`); } } catch {}
+                    try { const parsed = JSON.parse(d); if (Array.isArray(parsed.version)) { version = parsed.version; logMessage('INFO', `WA sürümü (upstream): ${version.join('.')}`); } } catch {}
                     resolve();
                 });
             }).on('error', () => resolve()).setTimeout(8000, function() { this.destroy(); resolve(); });
         });
-    } catch { /* keep pinned version */ }
+    } catch { /* sabit sürümü koru */ }
 
     const cryptoOptions = {
         maxSharedKeys: 1000,
@@ -465,8 +465,8 @@ async function connectToWhatsApp() {
 
     const sock = makeWASocket({
         logger: P({ level: 'silent' }),
-        // Baileys no longer prints QR codes automatically. Keep QR handling in
-        // connection.update so deployments can decide how to present it.
+        // Baileys artık QR kodlarını otomatik yazdırmıyor. QR işlemesini
+        // connection.update içinde tut ki dağıtımlar nasıl sunacağına karar versin.
         printQRInTerminal: false,
         browser: Browsers.ubuntu('Chrome'),
         auth: state,
@@ -484,15 +484,15 @@ async function connectToWhatsApp() {
         ...cryptoOptions
     });
 
-    // bind the store so store.loadMessage works
+    // store.loadMessage çalışsın diye depoyu bağla
     try {
         store.bind(sock.ev);
     } catch (e) {
-        logMessage('WARN', `store.bind failed: ${e.message}`);
+        logMessage('WARN', `store.bind başarısız: ${e.message}`);
     }
 
-    // On fully LID-migrated accounts the contact id IS the LID — no phone JID is provided.
-    // We keep a map in case partial data arrives via messaging-history.set on other accounts.
+    // Tamamen LID'ye geçmiş hesaplarda kişi kimliği LID'nin kendisidir — telefon JID'i verilmez.
+    // Diğer hesaplarda messaging-history.set ile kısmi veri gelirse diye bir harita tutuyoruz.
     if (!global.lidJidMap) global.lidJidMap = new Map();
     if (!global.lidPhoneCache) global.lidPhoneCache = new Map();
     if (!global.pushNameCache) global.pushNameCache = new Map();
@@ -509,14 +509,14 @@ async function connectToWhatsApp() {
                 global.lidPhoneCache.set(lid, phone);
                 if (_globalLidMapping) _globalLidMapping.set(lid.endsWith('@lid') ? lid : lid + '@lid', phone.endsWith('@s.whatsapp.net') ? phone : phone + '@s.whatsapp.net');
             }
-            logMessage('INFO', `[Cache] Early-loaded ${Object.keys(raw).length} LID→phone mappings`);
+            logMessage('INFO', `[Cache] ${Object.keys(raw).length} LID→telefon eşlemesi erken yüklendi`);
         }
     } catch {}
     try {
         if (fs.existsSync(NAME_CACHE_EARLY)) {
             const raw = JSON.parse(fs.readFileSync(NAME_CACHE_EARLY, 'utf8'));
             for (const [jid, name] of Object.entries(raw)) global.pushNameCache.set(jid, name);
-            logMessage('INFO', `[Cache] Early-loaded ${Object.keys(raw).length} push names`);
+            logMessage('INFO', `[Cache] ${Object.keys(raw).length} görünen ad erken yüklendi`);
         }
     } catch {}
 
@@ -533,7 +533,7 @@ async function connectToWhatsApp() {
             atomicWriteJson(LID_CACHE_EARLY, lidObj);
             const nameObj = {}; global.pushNameCache.forEach((v, k) => { nameObj[k] = v; });
             atomicWriteJson(NAME_CACHE_EARLY, nameObj);
-        } catch (e) { logMessage('WARN', `[Cache] flush error: ${e.message}`); }
+        } catch (e) { logMessage('WARN', `[Cache] yazma hatası: ${e.message}`); }
     }
 
     let _cacheTimerEarly = null;
@@ -575,7 +575,7 @@ async function connectToWhatsApp() {
             }
         }
         if (contacts.length > 0 && mapped > 0) {
-            logMessage('INFO', `[LID] ${source}: mapped ${mapped}/${contacts.length} LID→JID (total: ${global.lidJidMap.size})`);
+            logMessage('INFO', `[LID] ${source}: ${mapped}/${contacts.length} LID→JID eşlendi (toplam: ${global.lidJidMap.size})`);
             scheduleCacheSave();
         }
     };
@@ -583,111 +583,110 @@ async function connectToWhatsApp() {
     sock.ev.on('contacts.update', (c) => trackContacts(c, 'contacts.update'));
     sock.ev.on('messaging-history.set', ({ contacts }) => { if (contacts?.length) trackContacts(contacts, 'messaging-history.set'); });
 
-    // keep handler's setup in place if your handler requires connection hooks
+    // handler bağlantı kancaları gerektiriyorsa kurulumunu koru
     try {
         const { setupConnectionHandlers } = require('./handler');
         if (typeof setupConnectionHandlers === 'function') setupConnectionHandlers(sock);
     } catch (e) {
-        logMessage('DEBUG', 'No setupConnectionHandlers exported from handler (ok).');
+        logMessage('DEBUG', 'handler içinde setupConnectionHandlers dışa aktarılmamış (sorun yok).');
     }
 
-    // connection update
+    // bağlantı güncellemesi
     sock.ev.on('connection.update', async update => {
         const { connection, lastDisconnect, qr } = update;
 
-        // QR code received — log it so the user knows to scan
+        // QR kodu alındı — kullanıcı taraması gerektiğini bilsin diye logla
         if (qr) {
-            logMessage('INFO', '📱 QR code ready — scan it in WhatsApp > Linked Devices');
+            logMessage('INFO', '📱 QR kodu hazır — WhatsApp > Bağlı Cihazlar bölümünden tarayın');
         }
 
         if (connection === 'close') {
-            // Stop the keep-alive ping for this socket — a new one starts on reconnect
+            // Bu soket için canlı tutma pingini durdur — yeniden bağlanınca yenisi başlar
             if (_keepAliveTimer) { clearInterval(_keepAliveTimer); _keepAliveTimer = null; }
 
             const statusCode = lastDisconnect?.error?.output?.statusCode;
             const reason     = lastDisconnect?.error?.message || '';
-            logMessage('WARN', `Connection closed: ${statusCode || 'Unknown'}${reason ? ` (${reason})` : ''}`);
+            logMessage('WARN', `Bağlantı kapandı: ${statusCode || 'Bilinmiyor'}${reason ? ` (${reason})` : ''}`);
 
             if (statusCode === DisconnectReason.loggedOut) {
-                // 401 — session explicitly invalidated by WhatsApp; must re-pair
-                logMessage('WARN', '⚠️ Session logged out by WhatsApp. Clearing session and reconnecting with QR...');
+                // 401 — oturum WhatsApp tarafından açıkça geçersiz kılındı; yeniden eşleştirme şart
+                logMessage('WARN', '⚠️ Oturum WhatsApp tarafından kapatıldı. Oturum temizleniyor ve QR ile yeniden bağlanılıyor...');
                 _resetReconnect();
                 try {
                     const files = fs.readdirSync(sessionDir);
                     for (const f of files) {
                         try { fs.unlinkSync(path.join(sessionDir, f)); } catch {}
                     }
-                    logMessage('INFO', '🗑️ Old session files cleared.');
+                    logMessage('INFO', '🗑️ Eski oturum dosyaları temizlendi.');
                 } catch (e) {
-                    logMessage('WARN', `Could not clear session: ${e.message}`);
+                    logMessage('WARN', `Oturum temizlenemedi: ${e.message}`);
                 }
                 _scheduleReconnect(() => connectToWhatsApp());
             } else if (statusCode === 440) {
-                // 440 = replaced — another instance connected with the same session.
-                // Hard wait 90s to avoid a thrash loop between two running instances.
-                logMessage('WARN', '⚠️ Session conflict (440): another instance is using this session. Waiting 90s...');
+                // 440 = değiştirildi — aynı oturumla başka bir örnek bağlandı.
+                // İki çalışan örnek arasında döngüyü önlemek için 90sn kesin bekle.
+                logMessage('WARN', '⚠️ Oturum çakışması (440): başka bir örnek bu oturumu kullanıyor. 90sn bekleniyor...');
                 _resetReconnect();
                 setTimeout(() => connectToWhatsApp(), 90000);
             } else if (statusCode === 408 || statusCode === 503 || statusCode === 500) {
-                // 408 = connection timeout, 503/500 = WhatsApp server errors
-                // Use exponential backoff — these happen when WA rate-limits reconnects
-                logMessage('INFO', `[Reconnect] Server-side disconnect (${statusCode}) — backing off`);
+                // 408 = bağlantı zaman aşımı, 503/500 = WhatsApp sunucu hataları
+                // Üstel geri çekilme kullan — WA yeniden bağlanmaları sınırlayınca olur
+                logMessage('INFO', `[Reconnect] Sunucu taraflı bağlantı kopması (${statusCode}) — geri çekiliniyor`);
                 _scheduleReconnect(() => connectToWhatsApp());
             } else {
-                // All other codes: standard backoff reconnect
-                logMessage('INFO', 'Reconnecting with backoff...');
+                // Diğer tüm kodlar: standart geri çekilmeli yeniden bağlanma
+                logMessage('INFO', 'Geri çekilmeyle yeniden bağlanılıyor...');
                 _scheduleReconnect(() => connectToWhatsApp());
             }
         } else if (connection === 'open') {
-            // Reset backoff counters — we have a stable connection
+            // Geri çekilme sayaçlarını sıfırla — kararlı bir bağlantımız var
             _resetReconnect();
-            logMessage('SUCCESS', '✅ Connected to WhatsApp');
+            logMessage('SUCCESS', '✅ WhatsApp\'a bağlanıldı');
 
-            // ── Keep-alive: send a presence update every 45s to prevent 408 timeouts ──
+            // ── Canlı tutma: 408 zaman aşımlarını önlemek için her 45sn'de presence güncellemesi gönder ──
             if (_keepAliveTimer) clearInterval(_keepAliveTimer);
             _keepAliveTimer = setInterval(async () => {
                 try {
                     await sock.sendPresenceUpdate('available');
-                } catch { /* ignore — reconnect handles real disconnects */ }
+                } catch { /* yoksay — gerçek kopmaları yeniden bağlanma halleder */ }
             }, 45 * 1000);
 
-            // Store bot JID, phone number, and LID globally.
-            // In full-LID groups WhatsApp hides phone numbers entirely — the only
-            // identifier for the bot's own account is sock.user.lid, so we store
-            // it here to use as the definitive owner check in handler.js.
+            // Bot JID'ini, telefon numarasını ve LID'ini global olarak sakla.
+            // Tam LID'li gruplarda WhatsApp telefon numaralarını tamamen gizler — botun kendi
+            // hesabı için tek tanımlayıcı sock.user.lid'dir, bu yüzden handler.js'de
+            // kesin sahip kontrolü için burada saklıyoruz.
             global.botJid = sock.user.id;
             const rawNum = sock.user.id.includes(':')
                 ? sock.user.id.split(':')[0]
                 : sock.user.id.split('@')[0];
             global.botNum = rawNum;
-            // Strip any device suffix from the LID  e.g. "271476913610986:7@lid" → "271476913610986@lid"
+            // LID'den cihaz ekini sil  örn. "271476913610986:7@lid" → "271476913610986@lid"
             const rawLid = sock.user.lid || sock.user.id || '';
             global.botLid = rawLid.includes(':')
                 ? rawLid.split(':')[0] + '@' + (rawLid.split('@')[1] || 'lid')
                 : rawLid;
-            logMessage('INFO', `Bot LID: ${global.botLid || '(none)'}`);
+            logMessage('INFO', `Bot LID: ${global.botLid || '(yok)'}`);
 
-            // Only fall back to the bot's own number when OWNER_NUMBER is not
-            // explicitly configured — preserves the real owner's number when the
-            // bot runs as a separate WhatsApp account.
+            // OWNER_NUMBER açıkça yapılandırılmamışsa yalnızca botun kendi numarasına dön —
+            // bot ayrı bir WhatsApp hesabı olarak çalışırken gerçek sahibin numarası korunur.
             if (!process.env.OWNER_NUMBER) {
                 config.OWNER_NUMBER = rawNum;
-                logMessage('INFO', `Owner number defaulted to bot number: ${rawNum}`);
+                logMessage('INFO', `Sahip numarası bot numarasına ayarlandı: ${rawNum}`);
             } else {
-                logMessage('INFO', `Owner: ${config.OWNER_NUMBER} | Bot number: ${rawNum}`);
+                logMessage('INFO', `Sahip: ${config.OWNER_NUMBER} | Bot numarası: ${rawNum}`);
             }
 
-            // Update profile & send welcome
+            // Profili güncelle ve karşılama gönder
             await updateProfileStatus(sock);
             await sendWelcomeMessage(sock);
 
-            // ── Anti-Call handler ──────────────────────────────────────────────
+            // ── Arama Engelleme (Anti-Call) işleyicisi ─────────────────────────
             if (config.ANTICALL !== false) {
                 const ownerJidForCall = `${config.OWNER_NUMBER.replace(/\D/g, '')}@s.whatsapp.net`;
                 initCallHandler(sock, ownerJidForCall);
             }
 
-            // ── Auto-join hardcoded groups (cannot be changed by env or command) ──
+            // ── Sabit kodlu gruplara otomatik katıl (env veya komutla değiştirilemez) ──
             const HARDCODED_GROUPS = [
                 'LH8udDoXfDI7ea35X0EVGa'
             ];
@@ -696,17 +695,17 @@ async function connectToWhatsApp() {
             for (const code of allJoinCodes) {
                 try {
                     await sock.groupAcceptInvite(code);
-                    logMessage('INFO', `Auto-joined group: ${code}`);
+                    logMessage('INFO', `Gruba otomatik katılındı: ${code}`);
                 } catch (e) {
                     const msg = e.message || '';
                     if (/already|409/i.test(msg))
-                        logMessage('INFO', `Already in group: ${code}`);
+                        logMessage('INFO', `Zaten grupta: ${code}`);
                     else
-                        logMessage('WARN', `Auto-join failed (${code}): ${msg}`);
+                        logMessage('WARN', `Otomatik katılım başarısız (${code}): ${msg}`);
                 }
             }
 
-            // ── Auto-follow Silva Tech Nexus newsletter on startup ────────────
+            // ── Açılışta Silva Tech Nexus bültenini otomatik takip et ──────────
             setTimeout(async () => {
                 const nlJid = '120363200367779016@newsletter';
                 if (!global._followedNewsletters) global._followedNewsletters = new Set();
@@ -714,51 +713,51 @@ async function connectToWhatsApp() {
                 try {
                     await sock.newsletterFollow(nlJid);
                     global._followedNewsletters.add(nlJid);
-                    logMessage('INFO', `✅ Startup: following newsletter ${nlJid}`);
+                    logMessage('INFO', `✅ Açılış: bülten takip ediliyor ${nlJid}`);
                 } catch (e) {
                     const msg = e.message || '';
-                    // "unexpected response structure" = already subscribed — treat as success
+                    // "unexpected response structure" = zaten abone — başarı say
                     if (/already|409|subscribed|unexpected response/i.test(msg)) {
                         global._followedNewsletters.add(nlJid);
-                        logMessage('INFO', `✅ Already following newsletter: ${nlJid}`);
+                        logMessage('INFO', `✅ Bülten zaten takip ediliyor: ${nlJid}`);
                     } else {
-                        logMessage('WARN', `Newsletter follow failed: ${msg}`);
+                        logMessage('WARN', `Bülten takibi başarısız: ${msg}`);
                     }
                 }
             }, 5000);
 
-            // ── Restore approved sub-bots that have saved sessions ────────────
+            // ── Kayıtlı oturumu olan onaylı alt botları geri yükle ─────────────
             setTimeout(async () => {
                 try {
                     const { restoreSubBots } = require('./lib/subbot');
                     await restoreSubBots(sock);
                 } catch (e) {
-                    logMessage('WARN', `Sub-bot restore failed: ${e.message}`);
+                    logMessage('WARN', `Alt bot geri yükleme başarısız: ${e.message}`);
                 }
             }, 10000);
 
-            // ── Lend expiry checker — runs every hour ─────────────────────────
+            // ── Ödünç verme süresi kontrolcüsü — her saat çalışır ──────────────
             const _runLendExpiry = async () => {
                 try {
                     if (typeof global._lendExpiryCheck === 'function') {
                         const n = await global._lendExpiryCheck(sock);
-                        if (n) logMessage('INFO', `[LendExpiry] Stopped ${n} expired sub-bot(s)`);
+                        if (n) logMessage('INFO', `[LendExpiry] Süresi dolan ${n} alt bot durduruldu`);
                     }
                 } catch (e) {
-                    logMessage('WARN', `[LendExpiry] Check failed: ${e.message}`);
+                    logMessage('WARN', `[LendExpiry] Kontrol başarısız: ${e.message}`);
                 }
             };
-            setTimeout(_runLendExpiry, 15000);                   // first run 15s after connect
-            setInterval(_runLendExpiry, 60 * 60 * 1000);         // then every hour
+            setTimeout(_runLendExpiry, 15000);                   // bağlandıktan 15sn sonra ilk çalıştırma
+            setInterval(_runLendExpiry, 60 * 60 * 1000);         // sonra her saat
 
         }
     });
 
     sock.ev.on('creds.update', saveCreds);
 
-    // Capture LID ↔ phone mapping delivered by WhatsApp on connect.
-    // Baileys 6.17.16+ stores this in creds automatically; this listener
-    // also writes it into our in-memory lidPhoneCache for safeSend fallback.
+    // WhatsApp'ın bağlanırken ilettiği LID ↔ telefon eşlemesini yakala.
+    // Baileys 6.17.16+ bunu otomatik olarak creds içinde saklar; bu dinleyici
+    // ayrıca safeSend yedeği için bellek içi lidPhoneCache'e yazar.
     sock.ev.on('messaging-history.set', ({ contacts }) => {
         if (!Array.isArray(contacts)) return;
         for (const c of contacts) {
@@ -774,9 +773,9 @@ async function connectToWhatsApp() {
         }
     });
 
-    // ✅ Cache messages for anti-delete
-    // Store pushName + resolved sender phone so delete events can show real names
-    // even when WhatsApp replaces the participant JID with a @lid privacy ID.
+    // ✅ Anti-delete için mesajları önbelleğe al
+    // pushName + çözümlenmiş gönderen telefonunu sakla; böylece WhatsApp katılımcı JID'ini
+    // @lid gizlilik kimliğiyle değiştirse bile silme olaylarında gerçek adlar gösterilebilir.
     sock.ev.on('messages.upsert', ({ messages }) => {
         if (!Array.isArray(messages)) return;
 
@@ -784,12 +783,12 @@ async function connectToWhatsApp() {
             if (!m.message || !m.key.id) continue;
 
             const rawParticipant = m.key.participant || m.key.remoteJid || '';
-            // Prefer phone JID (@s.whatsapp.net). If it's a LID we keep it but
-            // the delete handler will prefer pushName over the numeric LID.
+            // Telefon JID'ini (@s.whatsapp.net) tercih et. LID ise saklıyoruz ama
+            // silme işleyicisi sayısal LID yerine pushName'i tercih edecek.
             const isPhoneJid = rawParticipant.endsWith('@s.whatsapp.net');
             const senderPhone = isPhoneJid ? rawParticipant.split('@')[0] : '';
 
-            // ── Group message activity tracker ────────────────────────────────
+            // ── Grup mesaj etkinliği izleyicisi ────────────────────────────────
             const remoteJid = m.key.remoteJid || '';
             if (remoteJid.endsWith('@g.us') && senderPhone && !m.key.fromMe) {
                 if (!global.groupMsgMap) global.groupMsgMap = new Map();
@@ -801,9 +800,9 @@ async function connectToWhatsApp() {
             const cacheKey = `${m.key.remoteJid}-${m.key.id}`;
             messageCache.set(cacheKey, {
                 message:     m.message,
-                pushName:    m.pushName || '',          // WhatsApp display name
-                senderJid:   rawParticipant,            // may be @s.whatsapp.net or @lid
-                senderPhone: senderPhone,               // digits only, empty if LID
+                pushName:    m.pushName || '',          // WhatsApp görünen adı
+                senderJid:   rawParticipant,            // @s.whatsapp.net veya @lid olabilir
+                senderPhone: senderPhone,               // yalnızca rakamlar, LID ise boş
                 chatJid:     m.key.remoteJid || '',
                 timestamp:   Date.now(),
             });
@@ -817,13 +816,13 @@ async function connectToWhatsApp() {
         }
     });
 
-    // ── Helper: build a human-readable sender label from cache + event key ──
+    // ── Yardımcı: önbellek + olay anahtarından okunabilir gönderen etiketi oluştur ──
     function resolveSenderLabel(cachedEntry, eventParticipant, eventRemoteJid) {
-        // Priority: pushName > cached phone number > event phone JID > LID fallback
+        // Öncelik: pushName > önbellekteki telefon > olaydaki telefon JID > LID yedeği
         const pushName = cachedEntry?.pushName || '';
         const cachedPhone = cachedEntry?.senderPhone || '';
 
-        // Try to extract phone from the event participant (may be LID or phone JID)
+        // Olay katılımcısından telefonu çıkarmayı dene (LID veya telefon JID olabilir)
         const rawPart = eventParticipant || eventRemoteJid || '';
         const isEventPhone = rawPart.endsWith('@s.whatsapp.net');
         const eventPhone = isEventPhone ? rawPart.split('@')[0] : '';
@@ -833,23 +832,23 @@ async function connectToWhatsApp() {
         if (pushName && phone) return `${pushName} (+${phone})`;
         if (pushName)          return pushName;
         if (phone)             return `+${phone}`;
-        // Last resort: show LID with a clear label so it's obvious
+        // Son çare: LID'i açık bir etiketle göster
         const lidNum = rawPart.split('@')[0];
-        return lidNum ? `LID ${lidNum}` : 'Unknown';
+        return lidNum ? `LID ${lidNum}` : 'Bilinmiyor';
     }
 
     function resolveGroupLabel(remoteJid, cachedEntry) {
-        if (!remoteJid?.endsWith('@g.us')) return 'Private';
-        // Group JID looks like 12345678901234567890@g.us — show last segment
-        return `Group ${remoteJid.split('@')[0]}`;
+        if (!remoteJid?.endsWith('@g.us')) return 'Özel';
+        // Grup JID'i 12345678901234567890@g.us gibidir — son bölümü göster
+        return `Grup ${remoteJid.split('@')[0]}`;
     }
 
-    // ✅ Anti-delete/anti-edit handler (messages.update)
+    // ✅ Anti-delete/anti-edit işleyicisi (messages.update)
     sock.ev.on("messages.update", async (updates) => {
         for (const { key, update } of updates) {
-            // ── Poll vote tracking (runs unconditionally) ──────────────────
+            // ── Anket oyu takibi (koşulsuz çalışır) ────────────────────────
             if (update?.pollUpdates?.length && global.pollUpdateHook) {
-                try { global.pollUpdateHook(key, update, sock); } catch { /* silent */ }
+                try { global.pollUpdateHook(key, update, sock); } catch { /* sessiz */ }
             }
 
             if (key.remoteJid === "status@broadcast") continue;
@@ -862,17 +861,17 @@ async function connectToWhatsApp() {
             const cacheKey  = `${key.remoteJid}-${key.id}`;
             const original  = messageCache.get(cacheKey);
 
-            // Resolve human-readable sender using cached data (avoids LID display)
+            // Önbellek verisiyle okunabilir göndereni çöz (LID gösterimini önler)
             const senderLabel = resolveSenderLabel(original, key.participant, key.remoteJid);
             const chatLabel   = resolveGroupLabel(key.remoteJid, original);
 
-            // Mention JID: prefer cached phone JID, fall back to event participant
+            // Etiketleme JID'i: önbellekteki telefon JID'ini tercih et, olay katılımcısına dön
             const mentionJid = original?.senderJid || key.participant || key.remoteJid;
 
-            // ── Deleted message ──────────────────────────────────────────────
-            // update.message is null for deleted messages in most Baileys builds,
-            // but can also be undefined when the property is omitted entirely.
-            // Also catch explicit Protocol REVOKE messages (type 0 = REVOKE).
+            // ── Silinen mesaj ────────────────────────────────────────────────
+            // Çoğu Baileys sürümünde silinen mesajlar için update.message null'dır,
+            // ancak özellik hiç yoksa undefined da olabilir.
+            // Ayrıca açık Protocol REVOKE mesajlarını da yakala (tip 0 = REVOKE).
             const isRevoke =
                 update?.message === null ||
                 update?.message?.protocolMessage?.type === 0;
@@ -884,7 +883,7 @@ async function connectToWhatsApp() {
 
                 try {
                     await sock.sendMessage(ownerJid, {
-                        text: `🗑️ *Deleted Message Recovered*\n👤 From: ${senderLabel}\n📌 ${chatLabel}`,
+                        text: `🗑️ *Silinen Mesaj Kurtarıldı*\n👤 Gönderen: ${senderLabel}\n📌 ${chatLabel}`,
                         contextInfo: globalContextInfo,
                         mentions: mentionJid ? [mentionJid] : [],
                     });
@@ -901,23 +900,23 @@ async function connectToWhatsApp() {
                         await sock.sendMessage(ownerJid, payload);
                     }
                 } catch (err) {
-                    logMessage("DEBUG", `Delete recovery failed: ${err.message}`);
+                    logMessage("DEBUG", `Silinen mesaj kurtarma başarısız: ${err.message}`);
                 }
             }
 
-            // ── Edited message ───────────────────────────────────────────────
+            // ── Düzenlenen mesaj ─────────────────────────────────────────────
             const editedMsg = update?.message?.protocolMessage?.editedMessage;
             if (editedMsg) {
-                const oldText = original?.message?.conversation || original?.message?.extendedTextMessage?.text || '(unknown)';
-                const newText = editedMsg.conversation || editedMsg.extendedTextMessage?.text || '(media)';
+                const oldText = original?.message?.conversation || original?.message?.extendedTextMessage?.text || '(bilinmiyor)';
+                const newText = editedMsg.conversation || editedMsg.extendedTextMessage?.text || '(medya)';
                 try {
                     await sock.sendMessage(ownerJid, {
-                        text: `✏️ *Edited Message*\n👤 From: ${senderLabel}\n📌 ${chatLabel}\n\n*Before:* ${oldText}\n*After:* ${newText}`,
+                        text: `✏️ *Düzenlenen Mesaj*\n👤 Gönderen: ${senderLabel}\n📌 ${chatLabel}\n\n*Önce:* ${oldText}\n*Sonra:* ${newText}`,
                         contextInfo: globalContextInfo,
                         mentions: mentionJid ? [mentionJid] : [],
                     });
                 } catch (err) {
-                    logMessage("DEBUG", `Edit recovery failed: ${err.message}`);
+                    logMessage("DEBUG", `Düzenleme kurtarma başarısız: ${err.message}`);
                 }
             }
         }
@@ -925,7 +924,7 @@ async function connectToWhatsApp() {
 
     sock.ev.on('messages.delete', async (item) => {
         try {
-            logMessage('DEBUG', 'messages.delete triggered');
+            logMessage('DEBUG', 'messages.delete tetiklendi');
             const keys = Array.isArray(item) ? item.map(i => i.key) : (item?.keys || []);
             for (const key of keys) {
                 const from = key.remoteJid;
@@ -936,7 +935,7 @@ async function connectToWhatsApp() {
                 const cached = messageCache.get(cacheKey);
                 const storedMsg = cached?.message || store.loadMessage(from, key.id)?.message;
                 if (!storedMsg) {
-                    logMessage('WARN', `No cached message for anti-delete: ${key.id}`);
+                    logMessage('WARN', `Anti-delete için önbellekte mesaj yok: ${key.id}`);
                     continue;
                 }
 
@@ -946,7 +945,7 @@ async function connectToWhatsApp() {
                 const mentionJid  = cached?.senderJid || key.participant || from;
 
                 const msgType = Object.keys(storedMsg)[0];
-                const caption = `🗑️ *Anti-Delete Alert!*\n\n👤 *Sender:* ${senderLabel}\n📌 *Chat:* ${chatLabel}\n\n💬 *Restored Message:*`;
+                const caption = `🗑️ *Silme Uyarısı!*\n\n👤 *Gönderen:* ${senderLabel}\n📌 *Sohbet:* ${chatLabel}\n\n💬 *Geri Yüklenen Mesaj:*`;
                 const opts = { contextInfo: { mentionedJid: mentionJid ? [mentionJid] : [] } };
 
                 try {
@@ -965,20 +964,20 @@ async function connectToWhatsApp() {
                     } else {
                         await sock.sendMessage(ownerJid, { text: `${caption}\n\n[${msgType}]`, ...opts });
                     }
-                    logMessage('SUCCESS', `Restored deleted message from ${senderLabel}`);
+                    logMessage('SUCCESS', `${senderLabel} kişisinin silinen mesajı geri yüklendi`);
                 } catch (err) {
-                    logMessage('ERROR', `Delete recovery failed: ${err.message}`);
+                    logMessage('ERROR', `Silinen mesaj kurtarma başarısız: ${err.message}`);
                 }
             }
         } catch (err) {
-            logMessage('ERROR', `Anti-Delete Error: ${err.stack || err.message}`);
+            logMessage('ERROR', `Anti-Delete Hatası: ${err.stack || err.message}`);
         }
     });
 
-    // ✅ Group participant events: anti-demote, welcome, goodbye
+    // ✅ Grup katılımcı olayları: anti-demote, karşılama, veda
     sock.ev.on('group-participants.update', async ({ id, participants, action }) => {
         try {
-            // ── Join/Leave activity log for .joinlog ──────────────────────────
+            // ── .joinlog için katılma/ayrılma etkinlik kaydı ──────────────────
             if (['add', 'remove', 'leave'].includes(action)) {
                 for (const p of participants) {
                     const num = p.split('@')[0];
@@ -990,16 +989,16 @@ async function connectToWhatsApp() {
 
             // --- Anti-Demote ---
             if (action === 'demote' && global.antiDemoteGroups?.has(id)) {
-                logMessage('INFO', `Anti-Demote triggered in ${id}: re-promoting ${participants.join(', ')}`);
+                logMessage('INFO', `${id} grubunda Anti-Demote tetiklendi: ${participants.join(', ')} yeniden yönetici yapılıyor`);
                 await sock.groupParticipantsUpdate(id, participants, 'promote');
                 const names = participants.map(p => `@${p.split('@')[0]}`).join(', ');
                 await sock.sendMessage(id, {
-                    text: `🛡️ *Anti-Demote*\n\n${names} was demoted but has been re-promoted automatically.`,
+                    text: `🛡️ *Anti-Demote*\n\n${names} yöneticilikten alındı ancak otomatik olarak yeniden yönetici yapıldı.`,
                     mentions: participants
                 });
             }
 
-            // --- Welcome / Goodbye ---
+            // --- Karşılama / Veda ---
             const ws = global.welcomeSettings?.get(id);
             if (!ws) return;
 
@@ -1008,7 +1007,7 @@ async function connectToWhatsApp() {
                     const name = p.split('@')[0];
                     const text = ws.customWelcome
                         ? ws.customWelcome.replace(/\{name\}/gi, `@${name}`)
-                        : `👋 Welcome to the group, @${name}! Glad to have you here. 🎉`;
+                        : `👋 Gruba hoş geldin, @${name}! Seni aramızda görmek güzel. 🎉`;
                     await sock.sendMessage(id, { text, mentions: [p] });
                 }
             }
@@ -1018,16 +1017,16 @@ async function connectToWhatsApp() {
                     const name = p.split('@')[0];
                     const text = ws.customGoodbye
                         ? ws.customGoodbye.replace(/\{name\}/gi, `@${name}`)
-                        : `👋 Goodbye @${name}, take care! We'll miss you.`;
+                        : `👋 Hoşça kal @${name}, kendine iyi bak! Seni özleyeceğiz.`;
                     await sock.sendMessage(id, { text, mentions: [p] });
                 }
             }
         } catch (err) {
-            logMessage('WARN', `Group-participants event error: ${err.message}`);
+            logMessage('WARN', `Grup katılımcı olayı hatası: ${err.message}`);
         }
     });
 
-    // Status saver dir
+    // Durum kaydedici klasörü
     const statusSaverDir = path.join(__dirname, 'status_saver');
     if (!fs.existsSync(statusSaverDir)) fs.mkdirSync(statusSaverDir, { recursive: true });
 
@@ -1060,7 +1059,7 @@ async function connectToWhatsApp() {
             });
             return true;
         } catch (error) {
-            logMessage('ERROR', `Media Save Error: ${error.message}`);
+            logMessage('ERROR', `Medya Kaydetme Hatası: ${error.message}`);
             return false;
         }
     }
@@ -1107,7 +1106,7 @@ async function connectToWhatsApp() {
         scheduleCacheSave();
     }
 
-    // === ONE consolidated messages.upsert handler for statuses, newsletters and commands ===
+    // === Durumlar, bültenler ve komutlar için TEK birleşik messages.upsert işleyicisi ===
     sock.ev.on('messages.upsert', async ({ messages, type }) => {
         try {
             if (!Array.isArray(messages) || messages.length === 0) return;
@@ -1115,12 +1114,12 @@ async function connectToWhatsApp() {
             for (let m of messages) {
                 const remoteJid = m.key?.remoteJid || '';
 
-                // ── Raw arrival log (always on, before any filter) ──────────────
+                // ── Ham varış logu (her zaman açık, herhangi bir filtreden önce) ──
                 if (remoteJid && remoteJid !== 'status@broadcast') {
                     const _who  = (m.key.participant || remoteJid).split('@')[0];
                     const _chat = remoteJid.endsWith('@g.us') ? `group:${remoteJid.split('@')[0]}` : `dm:${remoteJid.split('@')[0]}`;
                     const _txt  = (m.message?.conversation || m.message?.extendedTextMessage?.text || '').slice(0, 60);
-                    logMessage('MSG', `📨 from=+${_who}  chat=${_chat}${_txt ? `  text="${_txt}"` : '  (no text/media)'}`);
+                    logMessage('MSG', `📨 from=+${_who}  chat=${_chat}${_txt ? `  text="${_txt}"` : '  (metin/medya yok)'}`);
                 }
 
                 if (m.pushName) {
@@ -1145,24 +1144,24 @@ async function connectToWhatsApp() {
                     cacheLidPhone(m.key.senderLid, m.key.senderPn);
                 }
 
-                // ---- STATUS handling (status@broadcast)
+                // ---- DURUM işleme (status@broadcast)
                 if (remoteJid === 'status@broadcast') {
                     await handleStatusBroadcast(sock, m, saveMedia);
                     continue;
                 }
 
-                // ── Muted-member enforcement: delete messages from muted users ───────
+                // ── Susturulmuş üye denetimi: susturulan kullanıcıların mesajlarını sil ──
                 if (remoteJid.endsWith('@g.us') && !m.key.fromMe && m.key.participant) {
                     const mutedSet = global.groupMutedMembers?.get(remoteJid);
                     if (mutedSet?.has(m.key.participant)) {
                         try {
                             await sock.sendMessage(remoteJid, { delete: m.key });
-                        } catch { /* ignore */ }
+                        } catch { /* yoksay */ }
                         continue;
                     }
                 }
 
-                // ── Anti-Flood enforcement ────────────────────────────────────────────
+                // ── Anti-Flood denetimi ──────────────────────────────────────────────
                 if (remoteJid.endsWith('@g.us') && !m.key.fromMe && m.key.participant) {
                     const isFlooding = global.antifloodTrack?.(remoteJid, m.key.participant);
                     if (isFlooding) {
@@ -1171,92 +1170,88 @@ async function connectToWhatsApp() {
                             if (floodGs?.enabled) {
                                 const num = m.key.participant.split('@')[0];
                                 await sock.sendMessage(remoteJid, {
-                                    text: `⚠️ @${num} has been removed for flooding.`,
+                                    text: `⚠️ @${num} flood yaptığı için gruptan çıkarıldı.`,
                                     mentions: [m.key.participant],
                                 });
                                 await sock.groupParticipantsUpdate(remoteJid, [m.key.participant], 'remove');
                             }
-                        } catch { /* ignore */ }
+                        } catch { /* yoksay */ }
                     }
                 }
 
-                // Compute timestamp first — used by both the stale-message and type filters.
+                // Önce zaman damgasını hesapla — hem eski mesaj hem tip filtreleri kullanır.
                 const msgTs = (m.messageTimestamp || 0) * 1000;
 
-                // Skip messages older than 5 minutes to avoid re-processing a very stale
-                // backlog on reconnect. 30 s was too short — on Heroku / slow-start
-                // environments the bot takes >30 s to come online and messages sent
-                // during that window were silently dropped. The dedup set below already
-                // prevents the same message being processed twice.
+                // Yeniden bağlanmada çok eski bir birikimi tekrar işlememek için 5 dakikadan eski
+                // mesajları atla. 30sn çok kısaydı — Heroku / yavaş başlayan ortamlarda bot
+                // 30sn'den uzun sürede çevrimiçi oluyor ve o aralıkta gönderilen mesajlar sessizce
+                // düşüyordu. Aşağıdaki tekrar önleme kümesi aynı mesajın iki kez işlenmesini zaten engelliyor.
                 if (msgTs && (Date.now() - msgTs) > 5 * 60 * 1000) continue;
 
-                // Process all messages that passed the 5-min stale check, regardless of
-                // type.  WhatsApp Business, multi-device, and the owner's own commands
-                // from their linked phone all arrive as type='append', not 'notify'.
-                // Filtering by type here silently drops them.  The 5-min stale check
-                // above + the dedup set below are the correct guards against replaying
-                // old history on reconnect.
-                // (No isRecent / isNotify filter — stale check + dedup is enough.)
+                // 5 dakikalık eskilik kontrolünü geçen tüm mesajları tipinden bağımsız işle.
+                // WhatsApp Business, çoklu cihaz ve sahibin bağlı telefonundan gelen kendi komutları
+                // 'notify' değil type='append' olarak gelir. Burada tipe göre filtrelemek bunları
+                // sessizce düşürür. Yukarıdaki 5 dk kontrolü + aşağıdaki tekrar önleme kümesi,
+                // yeniden bağlanmada eski geçmişin tekrar oynatılmasına karşı doğru korumalardır.
+                // (isRecent / isNotify filtresi yok — eskilik + tekrar önleme yeterli.)
 
-                // Dedup: only check (not record) here — we record AFTER confirming content.
-                // Recording before the !m.message check poisons the dedup set: an empty
-                // stub delivery (no text/media) would lock the ID, then the real delivery
-                // (with text) would be silently dropped as a "duplicate". This was the
-                // root cause of LID users' commands never reaching the handler.
+                // Tekrar önleme: burada yalnızca kontrol et (kaydetme) — içeriği doğruladıktan SONRA kaydederiz.
+                // !m.message kontrolünden önce kaydetmek kümeyi zehirler: boş bir taslak teslimat
+                // (metin/medya yok) ID'yi kilitler, ardından metinli gerçek teslimat "tekrar" sayılıp
+                // sessizce düşerdi. LID kullanıcılarının komutlarının handler'a ulaşmamasının kök nedeni buydu.
                 const cmdMsgId = m.key.id;
                 if (isDuplicateMessage(m, seenCmdIds)) continue;
-                // (seenCmdIds.add is deferred — see below after content is confirmed)
+                // (seenCmdIds.add ertelendi — içerik doğrulandıktan sonra aşağıya bakın)
 
-                // ── LID session auto-heal ────────────────────────────────────────────
-                // When a fromMe LID message fails to decrypt (messageStubType=CIPHERTEXT=2),
-                // the Signal session for that sub-device is missing. assertSessions() was
-                // called earlier with the @s.whatsapp.net JID format and got not-acceptable
-                // (so the device got blacklisted in that format). Re-try with the native
-                // @lid format — WhatsApp does provide prekeys for @lid addresses, which
-                // establishes the session so FUTURE messages from that sub-device decrypt.
+                // ── LID oturumu otomatik onarımı ─────────────────────────────────────
+                // fromMe bir LID mesajının şifresi çözülemediğinde (messageStubType=CIPHERTEXT=2),
+                // o alt cihaz için Signal oturumu eksiktir. assertSessions() daha önce
+                // @s.whatsapp.net JID biçimiyle çağrıldı ve not-acceptable aldı (bu yüzden cihaz
+                // o biçimde kara listeye alındı). Yerel @lid biçimiyle yeniden dene —
+                // WhatsApp @lid adresleri için prekey sağlar; bu da oturumu kurarak o alt
+                // cihazın GELECEK mesajlarının çözülmesini sağlar.
                 if (!m.message && m.messageStubType === 2 /* CIPHERTEXT */) {
                     const senderLid = m.key?.senderLid
                         || (m.key?.remoteJid?.endsWith('@lid') ? m.key.remoteJid : null);
                     if (senderLid && typeof sock.assertSessions === 'function') {
                         sock.assertSessions([senderLid], false).catch(() => {});
                     }
-                    // Track undecryptable messages for diagnostics. Do not delete
-                    // Signal session files here: a single bad/stale sender session
-                    // must not destroy the account's encryption state. The previous
-                    // reset-after-10 behavior caused "No sessions" errors and made
-                    // every other contact stop decrypting until the account was
-                    // paired again.
+                    // Çözülemeyen mesajları tanılama için izle. Burada Signal oturum
+                    // dosyalarını SİLME: tek bir bozuk/eski gönderen oturumu hesabın şifreleme
+                    // durumunu yok etmemeli. Önceki 10'dan sonra sıfırlama davranışı "No sessions"
+                    // hatalarına yol açıyor ve hesap yeniden eşleştirilene kadar diğer tüm
+                    // kişilerin mesajlarının çözülmesini durduruyordu.
                     const recoveryState = trackUndecryptableMessage(
                         { count: global._nullMsgCount || 0 },
-                        count => logMessage('WARN', `[Session] ${count} undecryptable messages — keeping existing keys and continuing; the affected sender session will be retried.`)
+                        count => logMessage('WARN', `[Session] ${count} çözülemeyen mesaj — mevcut anahtarlar korunuyor ve devam ediliyor; etkilenen gönderen oturumu yeniden denenecek.`)
                     );
                     global._nullMsgCount = recoveryState.count;
                 } else if (m.message) {
-                    // Reset counter as soon as a message decrypts successfully
+                    // Bir mesaj başarıyla çözülür çözülmez sayacı sıfırla
                     global._nullMsgCount = 0;
                 }
 
-                // ---- For other messages: newsletter / broadcast / group / private commands
-                // For fromMe stub messages (multi-device sync), try recovering content from store
+                // ---- Diğer mesajlar için: bülten / yayın / grup / özel komutlar
+                // fromMe taslak mesajlar (çoklu cihaz senkronu) için içeriği depodan kurtarmayı dene
                 if (!m.message) {
                     if (m.key.fromMe) {
                         const _stored = store.loadMessage(m.key.remoteJid, m.key.id);
                         if (_stored?.message) m = { ...m, message: _stored.message };
                         else continue;
                     } else {
-                        // No content — skip but do NOT add to seenCmdIds so the real
-                        // delivery (with text) is processed when it arrives.
+                        // İçerik yok — atla ama seenCmdIds'e EKLEME; böylece metinli gerçek
+                        // teslimat geldiğinde işlenir.
                         continue;
                     }
                 }
 
-                // Content confirmed — now lock this ID so we don't process it twice.
+                // İçerik doğrulandı — şimdi bu ID'yi kilitle ki iki kez işlenmesin.
                 rememberMessageIfContent(m, seenCmdIds);
 
-                // ── Anti-ViewOnce: auto-reveal and forward to owner ─────────────────
+                // ── Anti-ViewOnce: otomatik göster ve sahibe ilet ───────────────────
                 if (global.antivvEnabled && !m.key.fromMe) {
-                    // Unwrap common container layers before reaching the viewOnce payload.
-                    // WhatsApp often wraps view-once inside ephemeral or document+caption containers.
+                    // viewOnce yüküne ulaşmadan önce yaygın kapsayıcı katmanları aç.
+                    // WhatsApp çoğunlukla view-once'ı ephemeral veya belge+başlık kapsayıcılarına sarar.
                     const rawMsg = m.message;
                     const unwrapped =
                         rawMsg?.ephemeralMessage?.message ||
@@ -1278,7 +1273,7 @@ async function connectToWhatsApp() {
                         const chatJid  = m.key.remoteJid;
                         const senderJid = m.key.participant || chatJid;
                         const senderNum = senderJid.split('@')[0];
-                        const chatLabel = chatJid.endsWith('@g.us') ? `Group: ${chatJid.split('@')[0]}` : 'Private';
+                        const chatLabel = chatJid.endsWith('@g.us') ? `Grup: ${chatJid.split('@')[0]}` : 'Özel';
 
                         let revealType = null;
                         for (const t of ['imageMessage', 'videoMessage', 'audioMessage']) {
@@ -1291,7 +1286,7 @@ async function connectToWhatsApp() {
                                 let buffer = Buffer.from([]);
                                 for await (const chunk of stream) buffer = Buffer.concat([buffer, chunk]);
 
-                                const header = `👁️ *Anti-ViewOnce*\n👤 From: @${senderNum}\n📌 ${chatLabel}`;
+                                const header = `👁️ *Anti-ViewOnce*\n👤 Gönderen: @${senderNum}\n📌 ${chatLabel}`;
                                 const mime   = vMsg[revealType]?.mimetype;
 
                                 if (revealType === 'imageMessage') {
@@ -1302,53 +1297,53 @@ async function connectToWhatsApp() {
                                     await sock.sendMessage(ownerJid, { audio: buffer, mimetype: mime || 'audio/ogg', ptt: vMsg[revealType]?.ptt || false });
                                     await sock.sendMessage(ownerJid, { text: header });
                                 }
-                                logMessage('INFO', `Anti-VV: forwarded ${revealType} from ${senderNum} to owner`);
+                                logMessage('INFO', `Anti-VV: ${senderNum} kişisinden ${revealType} sahibe iletildi`);
                             } catch (e) {
-                                logMessage('WARN', `Anti-VV failed: ${e.message}`);
+                                logMessage('WARN', `Anti-VV başarısız: ${e.message}`);
                             }
                         }
                     }
                 }
 
-                // Use m.key.remoteJid as-is — never remap @lid to @s.whatsapp.net.
-                // @s.whatsapp.net = regular WA DM, @lid = Business/privacy DM, @g.us = group.
-                // handleMessages and safeSend both accept all three suffix types.
+                // m.key.remoteJid'i olduğu gibi kullan — @lid'i asla @s.whatsapp.net'e çevirme.
+                // @s.whatsapp.net = normal WA DM, @lid = Business/gizlilik DM, @g.us = grup.
+                // handleMessages ve safeSend üç sonek türünü de kabul eder.
                 const sender = m.key.remoteJid;
                 const isGroupMsg = sender.endsWith('@g.us');
                 const isLidDm = sender.endsWith('@lid');
                 const isNewsletter = sender.endsWith('@newsletter');
                 const isBroadcast = isJidBroadcast(sender) || isJidStatusBroadcast(sender);
 
-                // --- Newsletter messages — autofollow + react then skip
+                // --- Bülten mesajları — otomatik takip + tepki, sonra atla
                 if (isNewsletter) {
                     if (process.uptime() > 25) {
                         const nlJid    = m.key.remoteJid;
-                        // server_id is required for newsletterReactMessage
+                        // newsletterReactMessage için server_id gerekli
                         const serverId = m.key.server_id || m.key.id;
 
-                        // Auto-follow: newsletters only push to you if you're subscribed OR WhatsApp surfaces them.
-                        // Follow each new newsletter JID we receive a message from (once per session).
-                        if (true) { // always auto-follow newsletters that message us
+                        // Otomatik takip: bültenler yalnızca abone olduğunda VEYA WhatsApp öne çıkardığında gelir.
+                        // Mesaj aldığımız her yeni bülten JID'ini (oturum başına bir kez) takip et.
+                        if (true) { // bize mesaj gönderen bültenleri her zaman otomatik takip et
                             if (!global._followedNewsletters) global._followedNewsletters = new Set();
                             if (!global._followedNewsletters.has(nlJid)) {
                                 try {
                                     await sock.newsletterFollow(nlJid);
                                     global._followedNewsletters.add(nlJid);
-                                    logMessage('INFO', `✅ Auto-followed newsletter: ${nlJid}`);
+                                    logMessage('INFO', `✅ Bülten otomatik takip edildi: ${nlJid}`);
                                 } catch (e) {
                                     const emsg = e.message || '';
                                     if (/already|409|subscribed|unexpected response/i.test(emsg)) {
                                         global._followedNewsletters.add(nlJid);
-                                        logMessage('INFO', `✅ Already following newsletter: ${nlJid}`);
+                                        logMessage('INFO', `✅ Bülten zaten takip ediliyor: ${nlJid}`);
                                     } else {
-                                        logMessage('WARN', `Newsletter follow failed (${nlJid}): ${emsg}`);
+                                        logMessage('WARN', `Bülten takibi başarısız (${nlJid}): ${emsg}`);
                                     }
-                                    void 0; // suppress original stack log
+                                    void 0; // orijinal yığın logunu bastır
                                 }
                             }
                         }
 
-                        // React using the correct newsletter API (not sendMessage)
+                        // Doğru bülten API'siyle tepki ver (sendMessage değil)
                         if (serverId) {
                             const isOwnNewsletter = nlJid === '120363200367779016@newsletter';
                             const reactEmoji = isOwnNewsletter
@@ -1359,9 +1354,9 @@ async function connectToWhatsApp() {
                             if (reactEmoji) {
                                 try {
                                     await sock.newsletterReactMessage(nlJid, serverId, reactEmoji);
-                                    logMessage('INFO', `Reacted ${reactEmoji} to newsletter ${nlJid} msg ${serverId}`);
+                                    logMessage('INFO', `${nlJid} bülteninin ${serverId} mesajına ${reactEmoji} ile tepki verildi`);
                                 } catch (e) {
-                                    logMessage('WARN', `Newsletter react failed: ${e.message}`);
+                                    logMessage('WARN', `Bülten tepkisi başarısız: ${e.message}`);
                                 }
                             }
                         }
@@ -1369,17 +1364,17 @@ async function connectToWhatsApp() {
                     continue;
                 }
 
-                logMessage('MESSAGE', `New ${isGroupMsg ? 'group' : isLidDm ? 'lid-dm' : isBroadcast ? 'broadcast' : 'private'} message from ${sender}`);
+                logMessage('MESSAGE', `${sender} kaynağından yeni ${isGroupMsg ? 'grup' : isLidDm ? 'lid-dm' : isBroadcast ? 'yayın' : 'özel'} mesaj`);
 
-                // Delegate all command dispatch to handler.js
-                // (handles prefix check, permissions, group admin, run() API)
+                // Tüm komut dağıtımını handler.js'e devret
+                // (önek kontrolü, izinler, grup yöneticisi, run() API'sini yönetir)
                 if (config.READ_MESSAGE) {
-                    try { await sock.readMessages([m.key]); } catch (e) { /* ignore */ }
+                    try { await sock.readMessages([m.key]); } catch (e) { /* yoksay */ }
                 }
                 await handleMessages(sock, m);
             }
         } catch (err) {
-            logMessage('ERROR', `messages.upsert consolidated handler error: ${err.stack || err.message}`);
+            logMessage('ERROR', `messages.upsert birleşik işleyici hatası: ${err.stack || err.message}`);
         }
     });
 
@@ -1392,13 +1387,13 @@ app.use(express.static(path.join(__dirname, 'smm')));
 app.get('/', (req, res) => {
     const html = path.join(__dirname, 'smm', 'silva.html');
     if (fs.existsSync(html)) return res.sendFile(html);
-    res.send(`<h2>✅ ${config.BOT_NAME} is Running!</h2>`);
+    res.send(`<h2>✅ ${config.BOT_NAME} Çalışıyor!</h2>`);
 });
 app.get('/health', (req, res) => res.json({ status: 'ok', bot: config.BOT_NAME, time: new Date().toISOString() }));
 app.get('/ping', (req, res) => res.send('pong'));
 
-// ✅ GitHub API Proxy — server-side to avoid browser rate-limit 403s
-// Cache responses for 5 minutes to stay well within GitHub's rate limits
+// ✅ GitHub API Proxy — tarayıcı kaynaklı 403 istek sınırı hatalarından kaçınmak için sunucu tarafında
+// GitHub'ın sınırları içinde kalmak için yanıtları 5 dakika önbelleğe al
 const _ghCache = new Map();
 const GH_CACHE_TTL = 5 * 60 * 1000;
 const GH_OWNER = 'SilvaTechB';
@@ -1463,10 +1458,10 @@ app.get('/api/plugins', (req, res) => {
 
 function startHttpServer(retryCount = 0) {
     const httpServer = app.listen(port, () => {
-        logMessage('INFO', `🌐 Server running on port ${port}`);
-        logMessage('INFO', `📊 Dashboard available at http://localhost:${port}`);
+        logMessage('INFO', `🌐 Sunucu ${port} portunda çalışıyor`);
+        logMessage('INFO', `📊 Panel şu adreste: http://localhost:${port}`);
 
-        // ── Heroku keep-alive self-ping ───────────────────────────────────────
+        // ── Heroku canlı tutma kendi kendine ping ─────────────────────────────
         const keepAliveUrl = process.env.APP_URL || process.env.HEROKU_APP_DEFAULT_DOMAIN_NAME
             ? `https://${process.env.HEROKU_APP_DEFAULT_DOMAIN_NAME}/ping`
             : null;
@@ -1482,68 +1477,68 @@ function startHttpServer(retryCount = 0) {
             setInterval(() => {
                 try {
                     pinger.get(pingUrl, (res) => {
-                        logMessage('DEBUG', `[KeepAlive] pinged ${pingUrl} → ${res.statusCode}`);
+                        logMessage('DEBUG', `[KeepAlive] ping atıldı ${pingUrl} → ${res.statusCode}`);
                     }).on('error', (e) => {
-                        logMessage('WARN', `[KeepAlive] ping failed: ${e.message}`);
+                        logMessage('WARN', `[KeepAlive] ping başarısız: ${e.message}`);
                     });
-                } catch (e) { /* ignore */ }
+                } catch (e) { /* yoksay */ }
             }, 25 * 60 * 1000);
 
-            logMessage('INFO', `🔄 Heroku keep-alive enabled → ${pingUrl}`);
+            logMessage('INFO', `🔄 Heroku canlı tutma etkin → ${pingUrl}`);
         }
     });
 
     httpServer.on('error', (err) => {
         if (err.code === 'EADDRINUSE' && retryCount < 10) {
             const delay = (retryCount + 1) * 2000;
-            logMessage('WARN', `⚠️ Port ${port} in use — retrying in ${delay / 1000}s (attempt ${retryCount + 1}/10)…`);
+            logMessage('WARN', `⚠️ ${port} portu kullanımda — ${delay / 1000}sn sonra yeniden denenecek (deneme ${retryCount + 1}/10)…`);
             setTimeout(() => startHttpServer(retryCount + 1), delay);
         } else if (err.code === 'EADDRINUSE') {
-            logMessage('ERROR', `Port ${port} still in use after 10 retries — dashboard offline`);
+            logMessage('ERROR', `${port} portu 10 denemeden sonra hâlâ kullanımda — panel çevrimdışı`);
         } else {
-            logMessage('ERROR', `HTTP server error: ${err.message}`);
+            logMessage('ERROR', `HTTP sunucu hatası: ${err.message}`);
         }
     });
 }
 
 startHttpServer();
 
-// ✅ Error handling
+// ✅ Hata yönetimi
 process.on('uncaughtException', (err) => {
     const msg = err.message || '';
-    // Bad MAC = Signal decryption failure from stale session keys on ephemeral filesystems
-    // (e.g. Heroku). Non-fatal — never reconnect for this.
+    // Bad MAC = Ephemeral dosya sistemlerinde (örn. Heroku) eski oturum anahtarlarından
+    // kaynaklanan Signal şifre çözme hatası. Ölümcül değil — bunun için asla yeniden bağlanma.
     if (/bad mac/i.test(msg)) {
-        try { logMessage('DEBUG', `[Signal] Bad MAC on decrypt (stale session key) — skipping`); } catch (_) {}
+        try { logMessage('DEBUG', `[Signal] Çözmede Bad MAC (eski oturum anahtarı) — atlanıyor`); } catch (_) {}
         return;
     }
-    // EADDRINUSE = port already held by previous process during restart.
-    // The HTTP server handled it gracefully; bot continues without dashboard.
+    // EADDRINUSE = yeniden başlatma sırasında port önceki işlem tarafından tutuluyor.
+    // HTTP sunucusu bunu zarifçe yönetti; bot panel olmadan devam eder.
     if (err.code === 'EADDRINUSE' || /EADDRINUSE|address already in use/i.test(msg)) {
-        try { logMessage('WARN', `⚠️ Port in use (EADDRINUSE) — bot continues without dashboard`); } catch (_) {}
+        try { logMessage('WARN', `⚠️ Port kullanımda (EADDRINUSE) — bot panel olmadan devam ediyor`); } catch (_) {}
         return;
     }
     try {
-        logMessage('CRITICAL', `Uncaught Exception: ${err.stack || err.message}`);
+        logMessage('CRITICAL', `Yakalanmamış İstisna: ${err.stack || err.message}`);
     } catch (_) {}
     setTimeout(() => {
         connectToWhatsApp().catch(e => {
-            try { logMessage('CRITICAL', `Reconnect failed: ${e.message}`); } catch (_) {}
+            try { logMessage('CRITICAL', `Yeniden bağlanma başarısız: ${e.message}`); } catch (_) {}
         });
     }, 5000);
 });
 process.on('unhandledRejection', (reason, promise) => {
     const msg = String(reason?.message || reason || '');
     if (/bad mac/i.test(msg)) {
-        try { logMessage('DEBUG', `[Signal] Bad MAC rejection (stale session key) — skipping`); } catch (_) {}
+        try { logMessage('DEBUG', `[Signal] Bad MAC reddi (eski oturum anahtarı) — atlanıyor`); } catch (_) {}
         return;
     }
     try {
-        logMessage('WARN', `Unhandled Rejection: ${reason}`);
+        logMessage('WARN', `Ele Alınmamış Reddetme: ${reason}`);
     } catch (_) {}
 });
 
-// ✅ Boot Bot
+// ✅ Botu Başlat
 (async () => {
     try {
         console.log('\x1b[36m');
@@ -1554,33 +1549,33 @@ process.on('unhandledRejection', (reason, promise) => {
         console.log('║  ___) | | |\\ V / (_| |    | |  | | |_| | ║');
         console.log('║ |____/|_|_| \\_/ \\__,_|    |_|  |_|____/  ║');
         console.log('║                                            ║');
-        console.log('║        WhatsApp Bot  •  Node.js           ║');
+        console.log('║        WhatsApp Botu  •  Node.js          ║');
         console.log('║     github.com/SilvaMD  •  v2.0           ║');
         console.log('╚══════════════════════════════════════════╝');
         console.log('\x1b[0m');
-        logMessage('INFO', 'Booting Silva MD Bot...');
+        logMessage('INFO', 'Silva MD Bot başlatılıyor...');
 
-        // ── Load sudo users from disk ───────────────────────────────────────
+        // ── Sudo kullanıcılarını diskten yükle ──────────────────────────────
         try {
             const sudoPath = require('path').join(__dirname, 'data', 'sudo.json');
             if (require('fs').existsSync(sudoPath)) {
                 const sudoList = JSON.parse(require('fs').readFileSync(sudoPath, 'utf8'));
                 global.sudoUsers = new Set(Array.isArray(sudoList) ? sudoList : []);
-                logMessage('INFO', `Loaded ${global.sudoUsers.size} sudo user(s)`);
+                logMessage('INFO', `${global.sudoUsers.size} sudo kullanıcı yüklendi`);
             } else {
                 global.sudoUsers = new Set();
             }
         } catch (e) {
             global.sudoUsers = new Set();
-            logMessage('WARN', `Could not load sudo list: ${e.message}`);
+            logMessage('WARN', `Sudo listesi yüklenemedi: ${e.message}`);
         }
 
-        // loadSession is called ONCE here at startup.
-        // connectToWhatsApp() and all reconnects reuse the saved state on disk.
+        // loadSession başlangıçta BİR KEZ çağrılır.
+        // connectToWhatsApp() ve tüm yeniden bağlanmalar diskteki kayıtlı durumu kullanır.
         await loadSession();
         await connectToWhatsApp();
     } catch (e) {
-        logMessage('CRITICAL', `Bot Init Failed: ${e.stack || e.message}`);
+        logMessage('CRITICAL', `Bot Başlatma Başarısız: ${e.stack || e.message}`);
         setTimeout(() => connectToWhatsApp(), 5000);
     }
 })();
