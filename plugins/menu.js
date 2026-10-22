@@ -6,7 +6,7 @@ const config  = require('../config');
 const { getStr } = require('../lib/theme');
 const moment  = require('moment-timezone');
 
-const WEBSITE = 'https://silvatech.co.ke';
+const WEBSITE = '...';
 const TSİ      = 'Europe/Istanbul';
 
 // ── Kategori tanımları ────────────────────────────────────────────────────────
@@ -104,7 +104,7 @@ function buildCompactMenu(plugins, pfx, botName, mode) {
         `│  \`${pfx}help <komut>\` → Komut yardımı│\n` +
         `╰┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄╯\n` +
         `\n> 🌐 _${WEBSITE}_\n` +
-        `> ⚡ _SilvaTech tarafından yapıldı © ${now.year()}_`;
+        `> ⚡ _Zlose tarafından yapıldı © ${now.year()}_`;
 
     return `${header}${statusBlock}\n${catBlock}\n${footer}`;
 }
