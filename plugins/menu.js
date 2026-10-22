@@ -7,7 +7,7 @@ const { getStr } = require('../lib/theme');
 const moment  = require('moment-timezone');
 
 const WEBSITE = 'https://silvatech.co.ke';
-const TZ      = 'Africa/Nairobi';
+const TSİ      = 'Europe/Istanbul';
 
 // ── Kategori tanımları ────────────────────────────────────────────────────────
 // Her birinin `.menu 3` gibi detay görüntüleme için sayısal bir ID'si vardır
