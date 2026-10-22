@@ -22,7 +22,7 @@ async function askFreeAI(query, jid, systemPrompt) {
             tryOne(async () => {
                 const res = await axios.post('https://ch.at/api/chat',
                     { message: fullPrompt },
-                    { headers: { 'Content-Type': 'application/json', 'User-Agent': 'SilvaMD-Bot/2.0' }, timeout: 10000 }
+                    { headers: { 'Content-Type': 'application/json', 'User-Agent': 'Alpha-Bot/2.0' }, timeout: 10000 }
                 );
                 return res.data?.reply || res.data?.message || res.data?.response || res.data?.result || res.data?.text || null;
             }),
@@ -133,7 +133,7 @@ const newElse = `        } else {
                 const toolList = [...pm.keys()].slice(0, 80).join(', ');
                 const systemPrompt =
                     'You are Silva, an intelligent WhatsApp bot assistant. ' +
-                    'Owner: ' + (config.OWNER_NAME || 'Silva') + '. Bot: ' + (config.BOT_NAME || 'Silva MD') + '. ' +
+                    'Owner: ' + (config.OWNER_NAME || 'Silva') + '. Bot: ' + (config.BOT_NAME || 'Alpha') + '. ' +
                     'Available commands: ' + toolList + '.\\n' +
                     'If the user request should run a bot command, reply with ONLY: TOOL:<command>|<args>\\n' +
                     'Examples: TOOL:play|Shape of You  or  TOOL:weather|Nairobi  or  TOOL:wiki|black holes\\n' +
