@@ -5,26 +5,26 @@ const axios = require('axios');
 // Using zenquotes.io (confirmed working 2026-06) as primary.
 
 const LOCAL_ADVICE = [
-    "Take breaks. Your brain needs rest to function well.",
-    "Drink enough water today. Small habits lead to big changes.",
-    "Before you speak, ask yourself: is it true, is it kind, is it necessary?",
-    "Comparison is the thief of joy. Run your own race.",
-    "You don't have to be great to start, but you have to start to be great.",
-    "Treat yourself the way you would treat a good friend.",
-    "Progress, not perfection, is the goal.",
-    "The best investment you can make is in yourself.",
-    "Do one thing every day that scares you — that's where growth lives.",
-    "Forgiveness is not about the other person. It's about freeing yourself.",
-    "Invest in experiences, not things — memories last longer.",
-    "Say no to good things so you can say yes to great ones.",
-    "Your energy is your most valuable resource. Protect it.",
-    "Respond, don't react. There's a difference.",
-    "Stop waiting for the perfect moment. Take the moment and make it perfect.",
+    "Mola verin. Beyninizin iyi çalışabilmesi için dinlenmeye ihtiyacı vardır.",
+    "Bugün yeterince su için. Küçük alışkanlıklar büyük değişimlere yol açar.",
+    "Konuşmadan önce kendinize sorun: Doğru mu, nazik mi, gerekli mi?",
+    "Kıyaslama, neşenin hırsızıdır. Kendi yarışını koş.",
+    "Başlamak için harika olmanıza gerek yok, ancak harika olmak için başlamanız gerekir.",
+    "Kendine, iyi bir arkadaşına davranacağın şekilde davran.",
+    "Hedef mükemmellik değil, ilerlemedir.",
+    "Yapabileceğiniz en iyi yatırım, kendinize yaptığınız yatırımdır.",
+    "Her gün seni korkutan bir şey yap; gelişim işte orada yaşar.",
+    "Affetmek, diğer kişiyle ilgili değildir. Kendinizi özgürleştirmekle ilgilidir.",
+    "Eşyalara değil, deneyimlere yatırım yapın; anılar daha uzun süre kalıcıdır.",
+    "İyi şeylere hayır de ki, harika olanlara evet diyebilesin.",
+    "Enerjiniz en değerli kaynağınızdır. Onu koruyun.",
+    "Tepki verme, yanıt ver. İkisi arasında fark vardır.",
+    "Mükemmel anı beklemeyi bırakın. Anı yakalayın ve onu mükemmel kılın.",
 ];
 
 module.exports = {
     commands:    ['advice', 'tip'],
-    description: 'Get a random piece of advice',
+    description: 'Rastgele bir tavsiye al',
     permission:  'public',
     group:       true,
     private:     true,
@@ -43,7 +43,7 @@ module.exports = {
             const q = Array.isArray(res.data) ? res.data[0] : res.data;
             if (q?.q && q?.a) {
                 text = `💡 *Advice*\n\n"${q.q}"\n\n— _${q.a}_`;
-            } else throw new Error('empty');
+            } else throw new Error('boş');
         } catch {
             // 2. Try adviceslip as secondary (was primary before; kept as backup)
             try {
