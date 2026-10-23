@@ -1,7 +1,7 @@
 'use strict';
 
 let afkActive = false;
-let afkReason  = 'No reason given';
+let afkReason  = 'Herhangi bir neden belirtilmedi';
 let afkSince   = 0;
 
 function formatDuration(ms) {
@@ -17,7 +17,7 @@ function formatDuration(ms) {
 
 module.exports = {
     commands:    ['afk', 'back'],
-    description: 'Owner AFK mode — bot auto-replies to everyone while you are away',
+    description: 'Sahibi için AFK modu — siz uzaktayken bot herkese otomatik yanıt verir',
     permission:  'owner',
     group:       true,
     private:     true,
@@ -32,10 +32,10 @@ module.exports = {
 
         if (cmdText === 'afk') {
             afkActive = true;
-            afkReason  = args.join(' ') || 'No reason given';
+            afkReason  = args.join(' ') || 'Herhangi bir neden belirtilmedi';
             afkSince   = Date.now();
             await safeSend({
-                text: `🌙 *AFK Mode Activated*\n\n📝 Reason: ${afkReason}\n\n_Anyone who messages will receive an auto-reply until you use .back_`,
+                text: `🌙 *AFK Modu Etkinleştirildi*\n\n📝 Sebep: ${afkReason}\n\n_.back komutunu kullanana kadar mesaj gönderen herkes otomatik yanıt alacaktır._`,
                 contextInfo
             }, { quoted: message });
             return;
@@ -43,13 +43,13 @@ module.exports = {
 
         if (cmdText === 'back') {
             if (!afkActive) {
-                await sock.sendMessage(message.key.remoteJid, { text: '✅ AFK mode is not currently active.', contextInfo }, { quoted: message });
+                await sock.sendMessage(message.key.remoteJid, { text: '✅ AFK modu şu anda etkin değil.', contextInfo }, { quoted: message });
                 return;
             }
             const duration = formatDuration(Date.now() - afkSince);
             afkActive = false;
             await safeSend({
-                text: `🌸 *Welcome back!*\n\n⏱ You were away for *${duration}*.`,
+                text: `🌸 *tekrar hoşgeldiniz!*\n\n⏱ Şu kadar süre uzaktaydın: *${duration}*.`,
                 contextInfo
             }, { quoted: message });
         }
