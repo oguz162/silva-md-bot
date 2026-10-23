@@ -1,24 +1,24 @@
 'use strict';
 
 const responses = [
-    '✅ It is certain.',
-    '✅ Without a doubt.',
-    '✅ Yes, definitely.',
+    '✅ Kesindir.',
+    '✅ Hiç şüphesiz.',
+    '✅ Evet, kesinlikle.',
     '✅ Most likely.',
-    '✅ Signs point to yes.',
-    '🔮 Ask again later.',
-    '🔮 Cannot predict now.',
-    '🔮 Concentrate and ask again.',
-    '❌ Don\'t count on it.',
-    '❌ My reply is no.',
-    '❌ My sources say no.',
-    '❌ Very doubtful.',
-    '❌ Outlook not so good.'
+    '✅ Büyük olasılıkla.',
+    '🔮 Daha sonra tekrar sor.',
+    '🔮 Şu an tahmin edilemiyor.',
+    '🔮 Odaklan ve tekrar sor.',
+    '❌ Buna bel bağlama.',
+    '❌ Yanıtım hayır.',
+    '❌ Kaynaklarım hayır diyor.',
+    '❌ Çok şüpheli.',
+    '❌ Görünüm pek iyi değil.'
 ];
 
 module.exports = {
     commands:    ['8ball', 'magic8'],
-    description: 'Ask the magic 8-ball a yes/no question',
+    description: 'Sihirli 8-topa evet/hayır sorusu sor',
     permission:  'public',
     group:       true,
     private:     true,
@@ -27,13 +27,13 @@ module.exports = {
         const chatId   = groupId || sender;
         if (!question) {
             return sock.sendMessage(chatId, {
-                text: '🎱 Ask the magic 8-ball a question!\nExample: .8ball Will I be rich?',
+                text: '🎱 Sihirli 8-topa bir soru sor! \nÖrnek: .8ball Zengin olacak mıyım?',
                 contextInfo
             }, { quoted: message });
         }
         const answer = responses[Math.floor(Math.random() * responses.length)];
         await sock.sendMessage(chatId, {
-            text: `🎱 *Magic 8-Ball*\n\n❓ ${question}\n\n${answer}`,
+            text: `🎱 *Sihirli 8-Top*\n\n❓ ${question}\n\n${answer}`,
             contextInfo
         }, { quoted: message });
     }
