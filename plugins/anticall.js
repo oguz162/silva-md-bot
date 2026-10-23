@@ -9,7 +9,7 @@ const DEFAULT_SETTINGS = {
     rejectCalls:    true,
     blockCaller:    false,
     notifyAdmin:    true,
-    autoReply:      "🚫 I don't accept calls. Please send a text message instead.",
+    autoReply:      "🚫 Arama kabul etmiyorum. Lütfen bunun yerine kısa mesaj gönderin..",
     blockedUsers:   []
 };
 
@@ -43,7 +43,7 @@ function initCallHandler(sock, ownerJid) {
                         text: settings.autoReply,
                         contextInfo: {
                             externalAdReply: {
-                                title:        'Call Rejected',
+                                title:        'Çağrı Reddedildi',
                                 body:         (getStr('botName') || 'Alpha') + ' Anti-Call',
                                 thumbnailUrl: getStr('pic1') || 'https://files.catbox.moe/5uli5p.jpeg',
                                 mediaType:    1
@@ -56,7 +56,7 @@ function initCallHandler(sock, ownerJid) {
             if (settings.notifyAdmin && ownerJid) {
                 try {
                     await sock.sendMessage(ownerJid, {
-                        text: `📞 *Anti-Call Alert*\n\nCaller: ${caller}\nType: ${call.isVideo ? 'video' : 'voice'}\nStatus: Rejected`
+                        text: `📞 *Arama Karşıtı Uyarı*\n\nArayan: ${caller}\nType: ${call.isVideo ? 'video' : 'voice'}\nStatus: Rejected`
                     });
                 } catch { /* ignore */ }
             }
@@ -67,12 +67,12 @@ function initCallHandler(sock, ownerJid) {
             }
         }
     });
-    console.log('[AntiCall] Call handler registered.');
+    console.log('[AntiCall] Çağrı işleyicisi kaydedildi.');
 }
 
 module.exports = {
     commands:    ['anticall'],
-    description: 'Manage anti-call protection — owner only',
+    description: 'İstenmeyen arama korumasını yönetin — yalnızca sahibi',
     permission:  'owner',
     group:       false,
     private:     true,
@@ -84,13 +84,13 @@ module.exports = {
         if (!action) {
             return sock.sendMessage(sender, {
                 text:
-`🤖 *Anti-Call Status*
-• Protection: ${settings.rejectCalls ? 'ENABLED' : 'DISABLED'}
-• Block on call: ${settings.blockCaller ? 'ON' : 'OFF'}
-• Auto-reply: ${settings.autoReply ? 'ON' : 'OFF'}
-• Blocked users: ${settings.blockedUsers.length}
+`🤖 *Çağrı Engelleme Durumu*
+• Koruma: ${settings.rejectCalls ? 'ENABLED' : 'DISABLED'}
+• Çağrıyı engelle: ${settings.blockCaller ? 'ON' : 'OFF'}
+• Otomatik yanıt: ${settings.autoReply ? 'ON' : 'OFF'}
+• Engellenen kullanıcılar: ${settings.blockedUsers.length}
 
-Usage: .anticall [on|off|block <num>|unblock <num>]`,
+Kullanım: .anticall [on|off|block <num>|unblock <num>]`,
                 contextInfo
             }, { quoted: message });
         }
@@ -99,25 +99,25 @@ Usage: .anticall [on|off|block <num>|unblock <num>]`,
             case 'on':
                 settings.rejectCalls = true;
                 saveSettings(settings);
-                await sock.sendMessage(sender, { text: '✅ Anti-call protection *enabled*.' }, { quoted: message });
+                await sock.sendMessage(sender, { text: '✅ Arama karşıtı koruma *etkin*.' }, { quoted: message });
                 break;
             case 'off':
                 settings.rejectCalls = false;
                 saveSettings(settings);
-                await sock.sendMessage(sender, { text: '✅ Anti-call protection *disabled*.' }, { quoted: message });
+                await sock.sendMessage(sender, { text: '✅ Arama karşıtı koruma *devre dışı*.' }, { quoted: message });
                 break;
             case 'block': {
                 const num = (args[1] || '').replace(/\D/g, '') + '@s.whatsapp.net';
-                if (!args[1]) return sock.sendMessage(sender, { text: '❌ Usage: .anticall block <number>' }, { quoted: message });
-                if (settings.blockedUsers.includes(num)) return sock.sendMessage(sender, { text: 'ℹ️ Already blocked.' }, { quoted: message });
+                if (!args[1]) return sock.sendMessage(sender, { text: '❌ Kullanım: .anticall block <numara>' }, { quoted: message });
+                if (settings.blockedUsers.includes(num)) return sock.sendMessage(sender, { text: 'ℹ️ Zaten engellendi.' }, { quoted: message });
                 settings.blockedUsers.push(num);
                 saveSettings(settings);
-                await sock.sendMessage(sender, { text: `✅ ${args[1]} blocked from calling.` }, { quoted: message });
+                await sock.sendMessage(sender, { text: `✅ ${args[1]} arama yapması engellendi.` }, { quoted: message });
                 break;
             }
             case 'unblock': {
                 const num = (args[1] || '').replace(/\D/g, '') + '@s.whatsapp.net';
-                if (!args[1]) return sock.sendMessage(sender, { text: '❌ Usage: .anticall unblock <number>' }, { quoted: message });
+                if (!args[1]) return sock.sendMessage(sender, { text: '❌ Kullanım: .anticall unblock <numara>' }, { quoted: message });
                 settings.blockedUsers = settings.blockedUsers.filter(u => u !== num);
                 saveSettings(settings);
                 await sock.sendMessage(sender, { text: `✅ ${args[1]} unblocked.` }, { quoted: message });
@@ -125,7 +125,7 @@ Usage: .anticall [on|off|block <num>|unblock <num>]`,
             }
             default:
                 await sock.sendMessage(sender, {
-                    text: '❌ Unknown option. Usage: .anticall [on|off|block|unblock]',
+                    text: '❌ Bilinmeyen seçenek. Kullanım: .anticall [on|off|block|unblock]',
                     contextInfo
                 }, { quoted: message });
         }
