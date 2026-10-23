@@ -13,10 +13,10 @@ function writeJson(file, data) {
     try { fs.writeFileSync(path.join(DATA_DIR, file), JSON.stringify(data, null, 2)); } catch {}
 }
 
-// ── In-memory reminder store (survives within session) ───────────────────────
+// ── Bellek içi hatırlatıcı deposu (oturum süresince varlığını korur) ───────────────────────
 const reminders = new Map(); // key → { jid, from, text, fireAt, timerId }
 
-// ── Word filter storage ───────────────────────────────────────────────────────
+// ── Kelime filtresi depolama ───────────────────────────────────────────────────────
 let wordFilters = readJson('word-filters.json', {});
 // { "groupJid": ["word1", "word2", ...] }
 
@@ -28,7 +28,7 @@ const slowmodeTrack = new Map(); // "groupJid:senderJid" → lastMsgTimestamp
 // ── onMessage hook: word filter + slowmode enforcement ────────────────────────
 const onMessagePlugin = {
     commands: ['__advanced_onmessage__'],
-    description: 'Internal onMessage hook for word filter and slowmode',
+    description: 'Kelime filtresi ve yavaş mod için dahili onMessage kancası',
     permission: 'public',
     run: async () => {},
     onMessage: async (sock, message, text, { jid, from, isGroup }) => {
@@ -43,7 +43,7 @@ const onMessagePlugin = {
                 try {
                     await sock.sendMessage(jid, { delete: message.key });
                     await sock.sendMessage(jid, {
-                        text: `⚠️ @${(message.key.participant || from).split('@')[0]} that word is not allowed here.`,
+                        text: `⚠️ @${(message.key.participant || from).split('@')[0]} o kelimenin burada kullanılmasına izin verilmiyor.`,
                         mentions: [message.key.participant || from]
                     });
                 } catch {}
@@ -74,19 +74,19 @@ module.exports = [
     // ── Native WhatsApp Poll ─────────────────────────────────────────────────
     {
         commands: ['poll', 'createpoll', 'vote'],
-        description: 'Create a native WhatsApp poll. Usage: .poll Question | Option1 | Option2 | ...',
+        description: 'Yerel bir WhatsApp anketi oluşturun. Kullanım: .poll Soru | Seçenek1 | Seçenek2 | ...',
         permission: 'public',
         group: true,
         run: async (sock, message, args, ctx) => {
             const { jid, reply } = ctx;
             const text = args.join(' ').trim();
             if (!text.includes('|')) return reply(
-                '📊 *Create a Poll*\n\nUsage:\n`.poll Question | Option1 | Option2 | Option3`\n\nExample:\n`.poll Favorite fruit? | Apple | Banana | Mango | Orange`\n\nMax 12 options.'
+                // '📊 *Anket Oluştur*\n\nUsage:\n`.poll Soru | Seçenek 1 | Seçenek 2 | Seçenek 3`\n\nExample:\n.poll Favorite fruit? | Apple | Banana | Mango | Orange`\n\nMax 12 options.'
             );
             const parts = text.split('|').map(s => s.trim()).filter(Boolean);
-            if (parts.length < 3) return reply('❌ Need at least 1 question + 2 options.\n\nExample: `.poll Best OS? | Android | iOS | Windows`');
+            if (parts.length < 3) return reply('❌ Need at least 1 question + 2 options.\n\nÖrnek: `.poll En iyi işletim sistemi? | Android | iOS | Windows`');
             const [question, ...options] = parts;
-            if (options.length > 12) return reply('❌ Maximum 12 options allowed.');
+            if (options.length > 12) return reply('❌ En fazla 12 seçeneğe izin verilir.');
             try {
                 await sock.sendMessage(jid, {
                     poll: {
@@ -96,7 +96,7 @@ module.exports = [
                     }
                 }, { quoted: message });
             } catch (e) {
-                reply(`❌ Poll failed: ${e.message}`);
+                reply(`❌ Anket başarısız oldu: ${e.message}`);
             }
         }
     },
@@ -104,14 +104,14 @@ module.exports = [
     // ── Multi-select Poll ────────────────────────────────────────────────────
     {
         commands: ['multipoll', 'multivote'],
-        description: 'Poll where users can pick multiple options. Usage: .multipoll Question | Opt1 | Opt2 ...',
+        description: 'Kullanıcıların birden fazla seçenek belirleyebildiği anket. Kullanım: .multipoll Soru | Seçenek1 | Seçenek2 ...',
         permission: 'public',
         group: true,
         run: async (sock, message, args, ctx) => {
             const { jid, reply } = ctx;
             const text = args.join(' ').trim();
             const parts = text.split('|').map(s => s.trim()).filter(Boolean);
-            if (parts.length < 3) return reply('❌ Need question + at least 2 options.\nExample: `.multipoll Pick all fruits you like | Apple | Mango | Orange`');
+            if (parts.length < 3) return reply('❌ Soru + en az 2 seçenek gereklidir. Örnek: `.multipoll Sevdiğiniz tüm meyveleri seçin | Elma | Mango | Portakal``');
             const [question, ...options] = parts;
             try {
                 await sock.sendMessage(jid, {
@@ -122,7 +122,7 @@ module.exports = [
                     }
                 }, { quoted: message });
             } catch (e) {
-                reply(`❌ Poll failed: ${e.message}`);
+                reply(`❌ Anket başarısız oldu: ${e.message}`);
             }
         }
     },
@@ -130,12 +130,12 @@ module.exports = [
     // ── Reminder ─────────────────────────────────────────────────────────────
     {
         commands: ['remind', 'reminder', 'remindme'],
-        description: 'Set a timed reminder. Usage: .remind 10m Buy groceries',
+        description: 'Zaman ayarlı bir hatırlatıcı oluşturun. Kullanım: .remind 10m Market alışverişi yap',
         permission: 'public',
         run: async (sock, message, args, ctx) => {
             const { jid, from, reply } = ctx;
             if (!args.length) return reply(
-                '⏰ *Reminder*\n\nUsage: `.remind <time> <message>`\n\nTime formats:\n• `30s` — 30 seconds\n• `5m` — 5 minutes\n• `2h` — 2 hours\n• `1d` — 1 day\n\nExamples:\n`.remind 10m Take medicine`\n`.remind 2h Call mom`\n`.remind 1d Pay rent`'
+                '⏰ *Hatırlatıcı*\n\nKullanım: `.remind <süre> <mesaj>`\n\nSüre biçimleri:\n• `30s` — 30 saniye\n• `5m` — 5 dakika\n• `2h` — 2 saat\n• `1d` — 1 gün\n\nÖrnekler:\n`.remind 10m İlacını al`\n`.remind 2h Annemi ara`\n`.remind 1d Kirayı öde``'
             );
             const timeStr = args[0].toLowerCase();
             const text = args.slice(1).join(' ').trim() || 'Reminder!';
@@ -144,9 +144,9 @@ module.exports = [
             else if (/^\d+m$/.test(timeStr)) ms = parseInt(timeStr) * 60000;
             else if (/^\d+h$/.test(timeStr)) ms = parseInt(timeStr) * 3600000;
             else if (/^\d+d$/.test(timeStr)) ms = parseInt(timeStr) * 86400000;
-            else return reply('❌ Invalid time. Use: 30s, 5m, 2h, 1d');
-            if (ms < 5000) return reply('❌ Minimum reminder time is 5 seconds.');
-            if (ms > 7 * 24 * 3600000) return reply('❌ Maximum reminder time is 7 days.');
+            else return reply('❌ Geçersiz süre. Şunu kullanın: 30s, 5m, 2h, 1d');
+            if (ms < 5000) return reply('❌ Minimum hatırlatma süresi 5 saniyedir.');
+            if (ms > 7 * 24 * 3600000) return reply('❌ Maksimum hatırlatıcı süresi 7 gündür.');
 
             const fireAt = Date.now() + ms;
             const id = `${jid}-${Date.now()}`;
@@ -157,101 +157,101 @@ module.exports = [
                 reminders.delete(id);
                 try {
                     await sock.sendMessage(jid, {
-                        text: `⏰ *Reminder!*\n\n${text}\n\n_Set ${displayTime} ago_`,
+                        text: `⏰ *Hatırlatma!*\n\n${text}\n\n_Set ${displayTime} ago_`,
                         mentions: [from]
                     });
                 } catch {}
             }, ms);
 
             reminders.set(id, { jid, from, text, fireAt, timerId });
-            reply(`⏰ *Reminder Set!*\n\n📝 *Note:* ${text}\n⏱ *Fires in:* ${displayTime}\n🕐 *At:* ${new Date(fireAt).toLocaleTimeString()}\n\nI'll ping you here when the time comes!`);
+            reply(`⏰ *Hatırlatıcı Ayarlandı!*\n\n📝 *Not:* ${text}\n⏱ *Yangınlar:* ${displayTime}\n🕐 *At:* ${new Date(fireAt).toLocaleTimeString()}\n\nZamanı geldiğinde buradan sana seslenirim!`);
         }
     },
 
     // ── List reminders ───────────────────────────────────────────────────────
     {
         commands: ['reminders', 'myreminders', 'listreminders'],
-        description: 'List your active reminders',
+        description: 'Etkin hatırlatıcılarınızı listeleyin',
         permission: 'public',
         run: async (sock, message, args, ctx) => {
             const { jid, from, reply } = ctx;
             const mine = [...reminders.values()].filter(r => r.jid === jid && r.from === from);
-            if (!mine.length) return reply('📭 You have no active reminders in this chat.');
+            if (!mine.length) return reply('📭 Bu sohbette aktif hatırlatıcınız bulunmuyor.');
             const lines = mine.map((r, i) => {
                 const left = Math.max(0, r.fireAt - Date.now());
                 const mins = Math.round(left / 60000);
                 return `${i + 1}. ⏰ *${r.text}* — in ${mins < 1 ? '<1' : mins}m`;
             });
-            reply(`⏰ *Your Reminders (${mine.length})*\n\n${lines.join('\n')}`);
+            reply(`⏰ *Hatırlatıcılarınız (${mine.length})*\n\n${lines.join('\n')}`);
         }
     },
 
     // ── Word Filter ──────────────────────────────────────────────────────────
     {
         commands: ['addfilter', 'filterword', 'blockword'],
-        description: 'Auto-delete messages containing a word. Usage: .addfilter <word>',
+        description: 'Belirli bir kelimeyi içeren mesajları otomatik olarak siler. Kullanım: .addfilter <kelime>',
         permission: 'admin',
         group: true,
         run: async (sock, message, args, ctx) => {
             const { jid, reply } = ctx;
             const word = args.join(' ').trim().toLowerCase();
-            if (!word) return reply('Usage: `.addfilter <word>`\nExample: `.addfilter spam`');
+            if (!word) return reply('Kullanım: `.addfilter <kelime>`\nÖrnek: `.addfilter spam``');
             if (!wordFilters[jid]) wordFilters[jid] = [];
-            if (wordFilters[jid].includes(word)) return reply(`⚠️ *"${word}"* is already filtered.`);
+            if (wordFilters[jid].includes(word)) return reply(`⚠️ *"${word}"* zaten filtrelenmiş durumda.`);
             wordFilters[jid].push(word);
             writeJson('word-filters.json', wordFilters);
-            reply(`✅ Word filter added: *"${word}"*\n\nMessages containing this word will be auto-deleted.`);
+            reply(`✅ Kelime filtresi eklendi: *"${word}"*\n\nBu kelimeyi içeren iletiler otomatik olarak silinecektir..`);
         }
     },
 
     {
         commands: ['removefilter', 'unfilter', 'unblockword'],
-        description: 'Remove a word filter',
+        description: 'Bir kelime filtresini kaldırın',
         permission: 'admin',
         group: true,
         run: async (sock, message, args, ctx) => {
             const { jid, reply } = ctx;
             const word = args.join(' ').trim().toLowerCase();
-            if (!wordFilters[jid]?.length) return reply('📭 No word filters active in this group.');
+            if (!wordFilters[jid]?.length) return reply('📭 Bu grupta herhangi bir kelime filtresi etkin değil.');
             const idx = wordFilters[jid].indexOf(word);
-            if (idx === -1) return reply(`❌ *"${word}"* is not in the filter list.`);
+            if (idx === -1) return reply(`❌ *"${word}"* filtre listesinde değil.`);
             wordFilters[jid].splice(idx, 1);
             writeJson('word-filters.json', wordFilters);
-            reply(`✅ Removed filter: *"${word}"*`);
+            reply(`✅ Filtre kaldırıldı: *"${word}"*`);
         }
     },
 
     {
         commands: ['listfilters', 'filterlist', 'wordfilters'],
-        description: 'List active word filters in this group',
+        description: 'Bu gruptaki etkin sözcük filtrelerini listele',
         permission: 'public',
         group: true,
         run: async (sock, message, args, ctx) => {
             const { jid, reply } = ctx;
             const list = wordFilters[jid];
-            if (!list?.length) return reply('📭 No word filters active in this group.\n\nAdmins can add them with `.addfilter <word>`');
-            reply(`🚫 *Word Filters (${list.length})*\n\n${list.map((w, i) => `${i + 1}. \`${w}\``).join('\n')}\n\nMessages containing these words are auto-deleted.`);
+            if (!list?.length) return reply('📭 Bu grupta herhangi bir kelime filtresi etkin değil.\n\nYöneticiler, `.addfilter <kelime>` komutuyla filtre ekleyebilirler.`');
+            reply(`🚫 *Kelime Filtreleri (${list.length})*\n\n${list.map((w, i) => `${i + 1}. \`${w}\``).join('\n')}\n\nBu kelimeleri içeren mesajlar otomatik olarak silinir.`);
         }
     },
 
     {
         commands: ['clearfilters', 'resetfilters'],
-        description: 'Remove all word filters from this group',
+        description: 'Bu gruptaki tüm kelime filtrelerini kaldırın',
         permission: 'admin',
         group: true,
         run: async (sock, message, args, ctx) => {
             const { jid, reply } = ctx;
-            if (!wordFilters[jid]?.length) return reply('📭 No filters to clear.');
+            if (!wordFilters[jid]?.length) return reply('📭 Temizlenecek filtre yok.');
             delete wordFilters[jid];
             writeJson('word-filters.json', wordFilters);
-            reply('✅ All word filters cleared for this group.');
+            reply('✅ Bu grup için tüm kelime filtreleri kaldırıldı.');
         }
     },
 
     // ── Slowmode ─────────────────────────────────────────────────────────────
     {
         commands: ['slowmode', 'slow'],
-        description: 'Set a cooldown between messages per user. Usage: .slowmode 30 (seconds) or .slowmode off',
+        description: 'Kullanıcı başına mesajlar arasına bir bekleme süresi (cooldown) koyun. Kullanım: .slowmode 30 (saniye) veya .slowmode off',
         permission: 'admin',
         group: true,
         run: async (sock, message, args, ctx) => {
@@ -260,14 +260,14 @@ module.exports = [
             if (arg === 'off' || arg === 'disable' || arg === '0') {
                 delete slowmodeSettings[jid];
                 writeJson('slowmode.json', slowmodeSettings);
-                return reply('✅ Slowmode *disabled* for this group.');
+                return reply('✅ Bu grup için yavaş mod *devre dışı*.');
             }
             const secs = parseInt(arg);
-            if (isNaN(secs) || secs < 1) return reply('Usage:\n`.slowmode 30` — 30 second cooldown\n`.slowmode off` — disable');
-            if (secs > 3600) return reply('❌ Maximum slowmode is 3600 seconds (1 hour).');
+            if (isNaN(secs) || secs < 1) return reply('Kullanım:\n`.yavaş mod 30` — 30 saniye bekleme süresi\n`.slowmode off — devre dışı bırak');
+            if (secs > 3600) return reply('❌ Maksimum yavaş mod süresi 3600 saniyedir (1 saat).');
             slowmodeSettings[jid] = { enabled: true, seconds: secs };
             writeJson('slowmode.json', slowmodeSettings);
-            reply(`🐢 *Slowmode ON*\n\nUsers must wait *${secs} seconds* between messages.\n\nType \`.slowmode off\` to disable.`);
+            reply(`🐢 *Yavaş mod açık*Kullanıcıların beklemesi gerekiyor *${secs} mesajlar arasında saniye*.\n\nDevre dışı bırakmak için \`.slowmode off\` yazın.`);
         }
     },
 
