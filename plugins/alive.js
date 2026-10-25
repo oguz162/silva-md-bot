@@ -6,7 +6,7 @@ const { performance } = require('perf_hooks');
 const { getActiveTheme } = require('../lib/theme');
 const moment  = require('moment-timezone');
 
-const TZ = 'Africa/Nairobi';
+const TSİ      = 'Europe/Istanbul';
 
 module.exports = {
     commands:    ['alive', 'bot', 'botinfo'],
