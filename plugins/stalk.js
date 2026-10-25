@@ -3,7 +3,7 @@
 const moment = require('moment-timezone');
 const { getCountry, resolvePhoneJid } = require('../lib/phone-utils');
 
-const TZ = 'Africa/Nairobi';
+const TSİ      = 'Europe/Istanbul';
 
 // ─── Presence helper ──────────────────────────────────────────────────────────
 // Subscribes to presence for a JID and waits up to `timeoutMs` for the first
@@ -40,8 +40,8 @@ function waitForPresence(sock, jid, timeoutMs = 6000) {
 // ─── Plugin ───────────────────────────────────────────────────────────────────
 module.exports = {
     commands:    ['stalk', 'userinfo', 'lookup', 'wa'],
-    description: 'Full profile card: picture, status, last seen, devices, country',
-    usage:       '.stalk @user  |  reply a message  |  .stalk 2547XXXXXXXX',
+    description: 'Tam profil kartı: resim, durum, son görülme, cihazlar, ülke',
+    usage:       '.stalk @user  |  Yanıtla mesaj  |  .stalk 555XXXXXXXX',
     permission:  'public',
     group:       true,
     private:     true,
@@ -74,8 +74,8 @@ module.exports = {
         if (!targetJid) {
             return sock.sendMessage(sender, {
                 text: lidNotCached
-                    ? '⚠️ That user\'s number isn\'t cached yet — ask them to send a message first, then retry.'
-                    : '❌ Mention someone, reply to their message, or provide a phone number.',
+                    ? '⚠️ Bu kullanıcının numarası henüz önbelleğe alınmamış; ondan önce bir mesaj göndermesini isteyin, ardından tekrar deneyin.'
+                    : '❌ Birinden bahsedin, mesajına yanıt verin veya bir telefon numarası belirtin.',
                 contextInfo
             }, { quoted: message });
         }
@@ -83,7 +83,7 @@ module.exports = {
         const number = targetJid.split('@')[0];
 
         await sock.sendMessage(sender, {
-            text: `🔍 Fetching profile for +${number}…`,
+            text: `🔍 Profil getiriliyor: +${number}…`,
             contextInfo
         }, { quoted: message });
 
@@ -105,11 +105,11 @@ module.exports = {
         ]);
 
         // ── Parse ──────────────────────────────────────────────────────────
-        const statusList  = statusResult.status  === 'fulfilled' ? (statusResult.value  || []) : [];
-        const biz         = bizResult.status      === 'fulfilled' ? bizResult.value      : null;
-        const picUrl      = picResult.status      === 'fulfilled' ? picResult.value      : null;
-        const devJids     = devResult.status       === 'fulfilled' ? (devResult.value    || []) : [];
-        const presence    = presenceResult.status  === 'fulfilled' ? presenceResult.value : null;
+        const statusList  = statusResult.status  === 'yerine getirilmiş' ? (statusResult.value  || []) : [];
+        const biz         = bizResult.status      === 'yerine getirilmiş' ? bizResult.value      : null;
+        const picUrl      = picResult.status      === 'yerine getirilmiş' ? picResult.value      : null;
+        const devJids     = devResult.status       === 'yerine getirilmiş' ? (devResult.value    || []) : [];
+        const presence    = presenceResult.status  === 'yerine getirilmiş' ? presenceResult.value : null;
 
         // Status / about
         const statusEntry = statusList.find?.(e => e?.status)?.status;
@@ -127,11 +127,11 @@ module.exports = {
         const companions = devJids.filter(d => d.device !== 0).length;
         let deviceLine;
         if (devJids.length === 0) {
-            deviceLine = '📱 Phone only (or data unavailable)';
+            deviceLine = '📱 Yalnızca telefon (veya veri erişimi yok)';
         } else if (companions === 0) {
-            deviceLine = '📱 Phone only';
+            deviceLine = '📱 Yalnızca telefon';
         } else {
-            deviceLine = `📱 Phone + ${companions} companion${companions > 1 ? 's' : ''} (Web / Desktop)`;
+            deviceLine = `📱 Telefon + ${companions} companion${companions > 1 ? 's' : ''} (Web / Masaüstü)`;
         }
 
         // Account type
@@ -140,21 +140,21 @@ module.exports = {
         // ── Last seen / presence ───────────────────────────────────────────
         let presenceLine;
         if (!presence) {
-            presenceLine = '🕐 Hidden / Privacy restricted';
+            presenceLine = '🕐 Gizli / Gizlilik kısıtlamalı';
         } else if (presence.lastKnownPresence === 'available') {
-            presenceLine = '🟢 Online right now';
+            presenceLine = '🟢 Şu an çevrim içi';
         } else if (presence.lastSeen) {
             const ts  = moment.unix(presence.lastSeen).tz(TZ);
             const now = moment().tz(TZ);
-            const diff = now.diff(ts, 'minutes');
+            const diff = now.diff(ts, 'dakika');
             let ago;
-            if (diff < 1)          ago = 'Just now';
-            else if (diff < 60)    ago = `${diff}m ago`;
+            if (diff < 1)          ago = 'Şu anda';
+            else if (diff < 60)    ago = `${diff} önce`;
             else if (diff < 1440)  ago = `${Math.floor(diff / 60)}h ${diff % 60}m ago`;
             else                   ago = ts.format('D MMM YYYY, h:mm A');
-            presenceLine = `🕐 Last seen: ${ago}`;
+            presenceLine = `🕐 Son görülme: ${ago}`;
         } else {
-            presenceLine = `⚪ Offline (last seen hidden)`;
+            presenceLine = `⚪ Çevrim dışı (son görülme gizli)`;
         }
 
         // ── Business extras ────────────────────────────────────────────────
@@ -163,34 +163,34 @@ module.exports = {
             const rows = [];
             if (biz.description) rows.push(`📝 *About:*    ${biz.description.slice(0, 100)}${biz.description.length > 100 ? '…' : ''}`);
             if (biz.email)        rows.push(`📧 *Email:*    ${biz.email}`);
-            if (biz.website?.[0]) rows.push(`🌐 *Website:*  ${biz.website[0]}`);
-            if (biz.address)      rows.push(`📍 *Address:*  ${biz.address}`);
+            if (biz.website?.[0]) rows.push(`🌐 *Web sitesi:*  ${biz.website[0]}`);
+            if (biz.address)      rows.push(`📍 *Adres:*  ${biz.address}`);
             if (rows.length)      bizBlock = '\n│\n│ ' + rows.join('\n│ ');
         }
 
         // ── Build card ─────────────────────────────────────────────────────
         const now        = moment().tz(TZ);
         const fetchedAt  = now.format('D MMM YYYY, h:mm A');
-        const accountTag = isBiz ? '🏢 WhatsApp Business' : '👤 Personal';
+        const accountTag = isBiz ? '🏢 WhatsApp Business' : '👤 Kişisel';
 
         const lines = [
             `╭──────────────────────────────`,
-            `│ 🔎 *User Profile Card*`,
+            `│ 🔎 *Kullanıcı Profil Kartı*`,
             `│ ─────────────────────────────`,
-            `│ 📞 *Number:*    +${number}`,
+            `│ 📞 *Numara:*    +${number}`,
         ];
-        if (pushName)   lines.push(`│ 👤 *Name:*      ${pushName}`);
+        if (pushName)   lines.push(`│ 👤 *İsim:*      ${pushName}`);
         lines.push(
             `│ 🌍 *Country:*   ${country}`,
-            `│ 🏷️ *Account:*   ${accountTag}`,
+            `│ 🏷️ *Hesap:*   ${accountTag}`,
             `│ ${presenceLine}`,
-            `│ 💻 *Devices:*   ${deviceLine}`,
+            `│ 💻 *Cihazlar:*   ${deviceLine}`,
         );
-        if (statusText) lines.push(`│ 💬 *Status:*    "${statusText.slice(0, 90)}${statusText.length > 90 ? '…' : ''}"`);
+        if (statusText) lines.push(`│ 💬 *Durum:*    "${statusText.slice(0, 90)}${statusText.length > 90 ? '…' : ''}"`);
         if (bizBlock)   lines.push(bizBlock);
         lines.push(
             `│ ─────────────────────────────`,
-            `│ 🕑 _Fetched: ${fetchedAt}_`,
+            `│ 🕑 _Getirildi: ${fetchedAt}_`,
             `╰──────────────────────────────`,
         );
 
