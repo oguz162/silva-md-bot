@@ -3,7 +3,7 @@
 const moment = require('moment-timezone');
 const { getCountry, resolvePhoneJid } = require('../lib/phone-utils');
 
-const TSİ      = 'Europe/Istanbul';
+const TZ  = 'Europe/Istanbul';
 
 // ─── Presence helper ──────────────────────────────────────────────────────────
 // Subscribes to presence for a JID and waits up to `timeoutMs` for the first
@@ -161,8 +161,8 @@ module.exports = {
         let bizBlock = '';
         if (biz?.wid) {
             const rows = [];
-            if (biz.description) rows.push(`📝 *About:*    ${biz.description.slice(0, 100)}${biz.description.length > 100 ? '…' : ''}`);
-            if (biz.email)        rows.push(`📧 *Email:*    ${biz.email}`);
+            if (biz.description) rows.push(`📝 *Hakkında:*    ${biz.description.slice(0, 100)}${biz.description.length > 100 ? '…' : ''}`);
+            if (biz.email)        rows.push(`📧 *E posta:*    ${biz.email}`);
             if (biz.website?.[0]) rows.push(`🌐 *Web sitesi:*  ${biz.website[0]}`);
             if (biz.address)      rows.push(`📍 *Adres:*  ${biz.address}`);
             if (rows.length)      bizBlock = '\n│\n│ ' + rows.join('\n│ ');
